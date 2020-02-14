@@ -276,7 +276,7 @@ public class NEOMonitorCluster {
 							moduleService.updateAll(moduleBo,jobsTmp);
 							String proc = pro.getString("sub.sql.redistribute");
 							//extendService.redistributeModuleDisconnect(jobsTmp, map, moduleBo, proc);
-							logger.info("master update db");
+							logger.info("master update db moduleBo.getIsMaster() == 1");
 						}
 					} else {
 						Long idMaster = checkMasterInListRetryFail(jobsTmp);
@@ -293,7 +293,7 @@ public class NEOMonitorCluster {
 								moduleBo.setIsMaster(1L);
 								//commnent
 								moduleService.updateAll(moduleBo,jobsTmp);
-								logger.info("master update db");
+								logger.info("master update db nếu nó được cập nhật là master");
 								addJobMaster();
 								logger.info("Update master  and all module");
 
@@ -335,7 +335,7 @@ public class NEOMonitorCluster {
 		if (update == true) {
 			//commnent
 			moduleService.updateAll(moduleBo,jobs);
-			logger.info("master update db");
+			logger.info("master update db getAllClient");
 			
 			
 		}else {
@@ -383,7 +383,7 @@ public class NEOMonitorCluster {
 		if (moduleBo.getIsMaster() == 1L) {
 			//commnent
 			moduleService.updateAll(moduleBo,listJob);
-			logger.info("master update db");
+			logger.info("master update db moduleBo.getIsMaster() == 1L");
 		}
 
 	}
