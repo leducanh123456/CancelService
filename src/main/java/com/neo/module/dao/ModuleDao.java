@@ -186,9 +186,6 @@ public class ModuleDao {
 	public int updateAll(ModuleBo module,List<ModuleBo> moduleBos, String proc, String moduleGroup) {
 		Connection connection = null;
 		CallableStatement callableStatement = null;
-		if(moduleBos.isEmpty()) {
-			return 1;
-		}
 		int k=0;
 		try {
 			connection = dataSource.getConnection();
@@ -197,6 +194,8 @@ public class ModuleDao {
 				str.append(moduleBo.getId());
 				str.append(",");
 			}
+			if(moduleBos.size()==0)
+				str.append(",");
 			str.delete(str.length()-1, str.length());
 			callableStatement = connection.prepareCall(proc);
 			callableStatement.setLong(1, module.getId());

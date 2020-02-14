@@ -35,7 +35,7 @@ public class NEOMonitorCluster {
 	@Autowired
 	@Qualifier("listModule")
 	private List<ModuleBo> jobs;
-	
+
 	@Autowired
 	@Qualifier("propertiesConfig")
 	private PropertiesConfiguration pro;
@@ -49,8 +49,7 @@ public class NEOMonitorCluster {
 
 	@Autowired
 	private ModuleService moduleService;
-	
-	
+
 	@Autowired
 	@Qualifier("schedulerFactory")
 	private SchedulerFactoryBean scheduler;
@@ -71,8 +70,8 @@ public class NEOMonitorCluster {
 	public void run() throws IOException {
 		try {
 			jobs = moduleService.getAllModule();
-		}catch (Exception e) {
-			logger.info("exception {}",e);
+		} catch (Exception e) {
+			logger.info("exception {}", e);
 			int exitValue = SpringApplication.exit(context);
 			System.exit(exitValue);
 		}
@@ -94,7 +93,8 @@ public class NEOMonitorCluster {
 			}
 		}
 		if (server == null) {
-			logger.info("Shut Down module : {} because module do not exist in data base, NEOMonitorCluster 116" ,pro.getString("module.name"));
+			logger.info("Shut Down module : {} because module do not exist in data base, NEOMonitorCluster 116",
+					pro.getString("module.name"));
 			int exitValue = SpringApplication.exit(context);
 			System.exit(exitValue);
 		}
@@ -240,7 +240,7 @@ public class NEOMonitorCluster {
 
 						} catch (Exception e) {
 							logger.info("Disconnect with module : {}", entry.getKey().getModuleName());
-							//e.printStackTrace();
+							// e.printStackTrace();
 							jobBoTmp = entry.getKey();
 							SocketChannel socketChannel = retry(jobBoTmp);// lấy ra kết qủa sau khi retry
 							if (socketChannel != null) {// retry thành công
@@ -257,7 +257,7 @@ public class NEOMonitorCluster {
 						}
 					}
 					// không loại bỏ các job vẫn còn kết nối với data base
-					
+
 					removeModuleDisconnetDb(jobsTmp, moduleService.getNumberConnectTion(jobsTmp));
 
 					if (!jobsTmp.isEmpty()) {// xóa danh sách các modul retry không thành công ra khỏi map
@@ -271,11 +271,11 @@ public class NEOMonitorCluster {
 
 					}
 					if (moduleBo.getIsMaster() == 1) {// nếu nó là master nó có quyền được cập nhật
-						if(!jobsTmp.isEmpty()) {
-							//comment
-							moduleService.updateAll(moduleBo,jobsTmp);
+						if (!jobsTmp.isEmpty()) {
+							// comment
+							moduleService.updateAll(moduleBo, jobsTmp);
 							String proc = pro.getString("sub.sql.redistribute");
-							//extendService.redistributeModuleDisconnect(jobsTmp, map, moduleBo, proc);
+							// extendService.redistributeModuleDisconnect(jobsTmp, map, moduleBo, proc);
 							logger.info("master update db moduleBo.getIsMaster() == 1");
 						}
 					} else {
@@ -285,21 +285,22 @@ public class NEOMonitorCluster {
 
 							if (checkUpdateMaster()) {// nếu nó được cập nhật là master thì nó cập nhật lại chính nó là
 														// master và cập nhật lại toàn bộ những thằng đã chết trong DB
-								logger.info(" this module update is  Master ({})",moduleBo.getModuleName());
+								logger.info(" this module update is  Master ({})", moduleBo.getModuleName());
 								moduleService.updateMaster(map, moduleBo);
 								// thực hiện phân phối lại toàn bộ dữ liệu cho các job còn sống
 								String proc = pro.getString("sub.sql.redistribute");
-								//extendService.redistributeModuleDisconnect(jobsTmp, map, moduleBo, proc);
+								// extendService.redistributeModuleDisconnect(jobsTmp, map, moduleBo, proc);
 								moduleBo.setIsMaster(1L);
-								//commnent
-								moduleService.updateAll(moduleBo,jobsTmp);
+								// commnent
+								moduleService.updateAll(moduleBo, jobsTmp);
 								logger.info("master update db nếu nó được cập nhật là master");
 								addJobMaster();
 								logger.info("Update master  and all module");
 
-							}else { //  nếu nó không được phép cập nhật làm master thì nó cập nhật lại thằng được chọn làm master
+							} else { // nếu nó không được phép cập nhật làm master thì nó cập nhật lại thằng được
+										// chọn làm master
 								Long idMaster1 = getMasterCurrent();
-								
+
 								for (Map.Entry<ModuleBo, SocketChannel> map : map.entrySet()) {
 									if (map.getKey().getId() == idMaster1) {
 										map.getKey().setIsMaster(1L);
@@ -331,7 +332,7 @@ public class NEOMonitorCluster {
 	public void getAllClient(List<ModuleBo> jobs) {
 
 		List<ModuleBo> listJob = new ArrayList<>();
-		
+
 		for (ModuleBo moduleBo : jobs) {
 			if (pro.getString("module.name").trim().equals(moduleBo.getModuleName()))
 				continue;// không call đến chính job đó
@@ -367,25 +368,31 @@ public class NEOMonitorCluster {
 
 			}
 		}
-		Boolean update = updateMaster();
-		if (update == true) {
-			//commnent
-			moduleService.updateAll(moduleBo,jobs);
-			logger.info("master update db getAllClient");
-			System.out.println("nó có phải là master hay không " +moduleBo.getIsMaster());
-			System.out.println("số lượng thằng đã connect đến nó " + listJob.size());
-			
-			
-		}else {
-			if(moduleBo.getIsMaster()==1) {
-				moduleBo.setState(1L);
-				moduleService.updateAll(moduleBo,jobs);
-				logger.info("master update db else");
-			}
+//		Boolean update = updateMaster();
+//		if (update == true) {
+//			//commnent
+//			moduleService.updateAll(moduleBo,jobs);
+//			logger.info("master update db getAllClient");
+//			System.out.println("nó có phải là master hay không " +moduleBo.getIsMaster());
+//			System.out.println("số lượng thằng đã connect đến nó " + listJob.size());
+//			
+//			
+//		}else {
+//			if(moduleBo.getIsMaster()==1) {
+//				moduleBo.setState(1L);
+//				moduleService.updateAll(moduleBo,jobs);
+//				logger.info("master update db else");
+//			}
+//		}
+		if (moduleBo.getIsMaster() == 1L && checkUpdateMaster()) {
+			// commnent
+			int k = moduleService.updateAll(moduleBo, listJob);
+			System.out.println("đây là danh sách các module mất kết nối " + listJob.size() + "" + k);
+			logger.info("master update db moduleBo.getIsMaster() == 1L");
 		}
-		if (moduleBo.getIsMaster() == 1L) {
-			//commnent
-			moduleService.updateAll(moduleBo,listJob);
+		if (map.isEmpty()) {
+			int k = moduleService.updateAll(moduleBo, listJob);
+			System.out.println("đây là danh sách các module mất kết nối " + listJob.size() + "" + k);
 			logger.info("master update db moduleBo.getIsMaster() == 1L");
 		}
 
@@ -491,7 +498,7 @@ public class NEOMonitorCluster {
 		if (!map.isEmpty()) {
 			for (ModuleBo moduleBo : moduleBos) {
 				for (Map<String, String> object : map) {
-					if (object.get(moduleBo.getModuleName())!=null) {
+					if (object.get(moduleBo.getModuleName()) != null) {
 						list.add(moduleBo);
 					}
 				}
@@ -563,18 +570,19 @@ public class NEOMonitorCluster {
 			return true;
 		return false;
 	}
-	
+
 	public void addJobMaster() {
 		Scheduler sc1 = scheduler.getScheduler();
 		try {
 			sc1.start();
-			
+
 		} catch (SchedulerException e) {
 			e.printStackTrace();
 		}
 	}
+
 	public Long getMasterCurrent() {
-		Long id  = moduleBo.getId();
+		Long id = moduleBo.getId();
 		for (Map.Entry<ModuleBo, SocketChannel> map : map.entrySet()) {
 			if (map.getKey().getId() < id) {
 				id = map.getKey().getId();
