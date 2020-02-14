@@ -276,7 +276,7 @@ public class NEOMonitorCluster {
 							moduleService.updateAll(moduleBo, jobsTmp);
 							String proc = pro.getString("sub.sql.redistribute");
 							// extendService.redistributeModuleDisconnect(jobsTmp, map, moduleBo, proc);
-							logger.info("master update db moduleBo.getIsMaster() == 1");
+							logger.info("master update db");
 						}
 					} else {
 						Long idMaster = checkMasterInListRetryFail(jobsTmp);
@@ -293,7 +293,7 @@ public class NEOMonitorCluster {
 								moduleBo.setIsMaster(1L);
 								// commnent
 								moduleService.updateAll(moduleBo, jobsTmp);
-								logger.info("master update db nếu nó được cập nhật là master");
+								logger.info("master update db");
 								addJobMaster();
 								logger.info("Update master  and all module");
 
@@ -387,13 +387,11 @@ public class NEOMonitorCluster {
 		if (moduleBo.getIsMaster() == 1L && checkUpdateMaster()) {
 			// commnent
 			int k = moduleService.updateAll(moduleBo, listJob);
-			System.out.println("đây là danh sách các module mất kết nối " + listJob.size() + "" + k);
-			logger.info("master update db moduleBo.getIsMaster() == 1L");
+			logger.info("master update db ");
 		}
 		if (map.isEmpty()) {
 			int k = moduleService.updateAll(moduleBo, listJob);
-			System.out.println("đây là danh sách các module mất kết nối " + listJob.size() + "" + k);
-			logger.info("master update db moduleBo.getIsMaster() == 1L");
+			logger.info("master update db");
 		}
 
 	}
