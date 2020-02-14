@@ -368,7 +368,7 @@ public class NEOMonitorCluster {
 //			}
 //		}
 		Boolean update = updateMaster();
-		if (update == true) {
+		if (update == true && moduleBo.getIsMaster() == 1L) {
 			//commnent
 			moduleService.updateAll(moduleBo,listJob);
 			logger.info("master update db 374");
@@ -516,7 +516,7 @@ public class NEOMonitorCluster {
 	 * update master
 	 */
 	public Boolean updateMaster() {
-		if (!checkExistMaster()) {
+		if (!checkExistMaster()) {//kiểm tra sự tồn tại của master trong danh sách đã load ra
 			jobs.get(0).setIsMaster(1L);
 			if (jobs.get(0).getId() == moduleBo.getId()) {
 				moduleBo.setIsMaster(1L);
