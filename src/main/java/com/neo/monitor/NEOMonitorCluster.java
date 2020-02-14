@@ -557,6 +557,11 @@ public class NEOMonitorCluster {
 				moduleBo.setIsMaster(moduleBos.getIsMaster());
 			}
 		}
+		for (ModuleBo moduleBos : jobs) {
+			if(moduleBos.getIsMaster()==1) {
+				System.out.println("module làm master là  " + moduleBos.getModuleName());
+			}
+		}
 	}
 
 	public Boolean checkDuplicateMaster() {
