@@ -286,7 +286,7 @@ public class NEOMonitorCluster {
 							if (checkUpdateMaster()) {// nếu nó được cập nhật là master thì nó cập nhật lại chính nó là
 														// master và cập nhật lại toàn bộ những thằng đã chết trong DB
 								logger.info(" this module update is  Master ({})", moduleBo.getModuleName());
-								moduleService.updateMaster(map, moduleBo);
+								//moduleService.updateMaster(map, moduleBo);
 								// thực hiện phân phối lại toàn bộ dữ liệu cho các job còn sống
 								String proc = pro.getString("sub.sql.redistribute");
 								// extendService.redistributeModuleDisconnect(jobsTmp, map, moduleBo, proc);
@@ -555,11 +555,6 @@ public class NEOMonitorCluster {
 		for (ModuleBo moduleBos : jobs) {
 			if(moduleBo.getId() == moduleBos.getId()) {
 				moduleBo.setIsMaster(moduleBos.getIsMaster());
-			}
-		}
-		for (ModuleBo moduleBos : jobs) {
-			if(moduleBos.getIsMaster()==1) {
-				System.out.println("module làm master là  " + moduleBos.getModuleName());
 			}
 		}
 	}
