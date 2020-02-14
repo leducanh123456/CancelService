@@ -552,6 +552,11 @@ public class NEOMonitorCluster {
 		for (int j = i + 1; j < jobs.size(); j++) {
 			jobs.get(j).setIsMaster(0L);
 		}
+		for (ModuleBo moduleBos : jobs) {
+			if(moduleBo.getId() == moduleBos.getId()) {
+				moduleBo.setIsMaster(moduleBos.getIsMaster());
+			}
+		}
 	}
 
 	public Boolean checkDuplicateMaster() {
