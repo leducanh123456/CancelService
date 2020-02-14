@@ -344,6 +344,7 @@ public class NEOMonitorCluster {
 			if(moduleBo.getIsMaster()==1) {
 				moduleBo.setState(1L);
 				moduleService.updateAll(moduleBo,jobs);
+				logger.info("master update db else");
 			}
 		}
 		
