@@ -60,8 +60,15 @@ public class ModuleService {
 			str.append(entryMap.getKey().getModuleName());
 			str.append(",");
 		}
+<<<<<<< master
 		str.append(moduleBo.getModuleName());
 		moduleDao.updateMaster(str.toString(),moduleBo.getId());
+=======
+		str.append(moduleBo.getId());
+		String proc = prosql.getString("sub.sql.update.module.master");
+		String moduleGroup = pro.getString("module.group");
+		moduleDao.updateMaster(str.toString(),moduleBo.getId(),proc,moduleGroup);
+>>>>>>> local
 	}
 
 	/**
@@ -70,8 +77,14 @@ public class ModuleService {
 	 * @param moduleBos
 	 */
 	public int updateAll(List<ModuleBo> moduleBos) {
+<<<<<<< master
 		String sql = prosql.getString("sub.sql.find.module.by.module.name");
 		return moduleDao.updateAll(moduleBos, sql);
+=======
+		String sql = prosql.getString("sub.sql.update.module.disconnect");
+		String moduleGroup = pro.getString("module.group");
+		return moduleDao.updateAll(moduleBos, sql,moduleGroup);
+>>>>>>> local
 	}
 	
 	/**

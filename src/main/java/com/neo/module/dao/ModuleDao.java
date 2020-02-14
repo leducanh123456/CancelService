@@ -146,14 +146,12 @@ public class ModuleDao {
 	 *           update colum isMaster = 1 in DB where id = input and orther colum
 	 *           isMaster =0
 	 */
-	public void updateMaster(String moduleOn, Long idNewMaster) {
+	public void updateMaster(String moduleOn, Long idNewMaster, String proc, String modulegroup) {
 		Connection connection = null;
 		CallableStatement callableStatement = null;
 		try {
 			connection = dataSource.getConnection();
-			String query;
-			query = "{CALL update_master(?,?) }";
-			callableStatement = connection.prepareCall(query);
+			callableStatement = connection.prepareCall(proc);
 			callableStatement.setLong(1, idNewMaster);
 			callableStatement.setString(2, moduleOn);
 			callableStatement.execute();
@@ -184,9 +182,12 @@ public class ModuleDao {
 	 * 
 	 * @param moduleBos
 	 */
-	public int updateAll(List<ModuleBo> moduleBos, String proc) {
+	public int updateAll(List<ModuleBo> moduleBos, String proc, String moduleGroup) {
 		Connection connection = null;
 		CallableStatement callableStatement = null;
+		if(moduleBos.isEmpty()) {
+			return 1;
+		}
 		int k=0;
 		try {
 			connection = dataSource.getConnection();
@@ -198,6 +199,7 @@ public class ModuleDao {
 			str.delete(str.length()-1, str.length());
 			callableStatement = connection.prepareCall(proc);
 			callableStatement.setString(1, str.toString());
+			callableStatement.setString(3, moduleGroup);
 			callableStatement.registerOutParameter(2, OracleTypes.INTEGER);
 			callableStatement.execute();
 			k = callableStatement.getInt(2);
