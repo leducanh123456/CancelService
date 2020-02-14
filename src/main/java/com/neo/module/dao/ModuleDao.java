@@ -196,7 +196,8 @@ public class ModuleDao {
 			}
 			if(moduleBos.size()==0)
 				str.append(",");
-			str.delete(str.length()-1, str.length());
+			else
+				str.delete(str.length()-1, str.length());
 			callableStatement = connection.prepareCall(proc);
 			callableStatement.setLong(1, module.getId());
 			callableStatement.setString(2, str.toString());

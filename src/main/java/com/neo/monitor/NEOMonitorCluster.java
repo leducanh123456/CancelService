@@ -355,18 +355,18 @@ public class NEOMonitorCluster {
 		removeModuleDisconnetDb(listJob, moduleService.getNumberConnectTion(listJob));
 		// hoàn tất kết nối kiểm tra cập nhật master
 		// kiểm tra trong các mất kết nối có master không
-		Long idMaster = checkMasterInListRetryFail(listJob);
-		if (idMaster != null) {
-			logger.info("Master in list Retry not success");
-			// nếu có kiểm tra xem bản thân thằng này có được cập nhật monitor không
-			if (checkUpdateMaster()) {
-				logger.info("module {} is update Master", moduleBo.getModuleName());
-				// nếu được cập nhật thì cập nhật lại để quét
-				moduleService.updateMaster(map, moduleBo);
-				addJobMaster();
-
-			}
-		}
+//		Long idMaster = checkMasterInListRetryFail(listJob);
+//		if (idMaster != null) {
+//			logger.info("Master in list Retry not success");
+//			// nếu có kiểm tra xem bản thân thằng này có được cập nhật monitor không
+//			if (checkUpdateMaster()) {
+//				logger.info("module {} is update Master", moduleBo.getModuleName());
+//				// nếu được cập nhật thì cập nhật lại để quét
+//				moduleService.updateMaster(map, moduleBo);
+//				addJobMaster();
+//
+//			}
+//		}
 		Boolean update = updateMaster();
 		if (update == true) {
 			//commnent
