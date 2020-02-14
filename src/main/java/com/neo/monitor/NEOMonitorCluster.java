@@ -57,6 +57,30 @@ public class NEOMonitorCluster {
 
 	
 	@Autowired
+	@Qualifier("distributetionOldRecord")
+	private CronTriggerFactoryBean distributionOldRecord;
+
+	@Autowired
+	@Qualifier("jobDistributetionOldRecord")
+	private JobDetailFactoryBean jobDistributionOldRecord;
+
+	@Autowired
+	@Qualifier("cancelService")
+	private CronTriggerFactoryBean cancelService;
+
+	@Autowired
+	@Qualifier("jobCancelService")
+	private JobDetailFactoryBean jobCancelService;
+	
+	@Autowired
+	@Qualifier("JobMoveData")
+	private JobDetailFactoryBean JobMoveData;
+
+	@Autowired
+	@Qualifier("moveData")
+	private CronTriggerFactoryBean moveData;
+
+	@Autowired
 	@Qualifier("retry")
 	private ConcurrentHashMap<ModuleBo, SocketChannel> retry;
 
@@ -274,7 +298,7 @@ public class NEOMonitorCluster {
 					if (moduleBo.getIsMaster() == 1) {// nếu nó là master nó có quyền được cập nhật
 						if(!jobsTmp.isEmpty()) {
 							//comment
-							moduleService.updateAll(jobsTmp);
+							//moduleService.updateAll(jobsTmp);
 							String proc = pro.getString("sub.sql.redistribute");
 							//extendService.redistributeModuleDisconnect(jobsTmp, map, moduleBo, proc);
 							System.out.println("chạy cập nhật liên tục");
@@ -556,7 +580,36 @@ public class NEOMonitorCluster {
 		try {
 			sc1.start();
 			
+			if (sc1.checkExists(jobFilterData.getObject().getKey())) {
+				logger.info("Job filter data already exist, delete old jobFilterData");
+				sc1.deleteJob(jobFilterData.getObject().getKey());
+			}
+
+			if (sc1.checkExists(JobMoveData.getObject().getKey())) {
+				logger.info("Job move data extend to table queue already exist, delete old  move data extend to table queue");
+				sc1.deleteJob(JobMoveData.getObject().getKey());
+			}
 			
+			if(sc1.checkExists(jobDistributionOldRecord.getObject().getKey())) {
+				logger.info("Job move data extenddistributionOldRecord to table queue already exist, delete old  move data extenddistributionOldRecord to table queue");
+				sc1.deleteJob(jobDistributionOldRecord.getObject().getKey());
+			}
+			if(sc1.checkExists(jobCancelService.getObject().getKey())) {
+				logger.info("Job cancel service already exist, delete old job cancel service");
+				sc1.deleteJob(jobDistributionOldRecord.getObject().getKey());
+			}
+			
+			logger.info("Add job filter extend in master");
+			sc1.scheduleJob(jobFilterData.getObject(), filterData.getObject());
+			
+			logger.info("Add job move extend to table queue  in master");
+			sc1.scheduleJob(JobMoveData.getObject(), moveData.getObject());
+			
+			logger.info("Add job distributionOldRecord in master");
+			sc1.scheduleJob(jobDistributionOldRecord.getObject(), distributionOldRecord.getObject());
+			
+			logger.info("Add job cancel service in master");
+			sc1.scheduleJob(jobCancelService.getObject(), cancelService.getObject());
 			
 		} catch (SchedulerException e) {
 			e.printStackTrace();

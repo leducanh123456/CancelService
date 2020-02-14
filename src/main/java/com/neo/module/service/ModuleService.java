@@ -57,11 +57,15 @@ public class ModuleService {
 		
 		StringBuilder str = new StringBuilder();
 		for (Map.Entry<ModuleBo, SocketChannel> entryMap : modules.entrySet()) {
-			str.append(entryMap.getKey().getModuleName());
+			str.append(entryMap.getKey().getId());
 			str.append(",");
 		}
+<<<<<<< HEAD
 <<<<<<< master
 		str.append(moduleBo.getModuleName());
+=======
+		str.append(moduleBo.getId());
+>>>>>>> version1
 		moduleDao.updateMaster(str.toString(),moduleBo.getId());
 =======
 		str.append(moduleBo.getId());
@@ -77,8 +81,12 @@ public class ModuleService {
 	 * @param moduleBos
 	 */
 	public int updateAll(List<ModuleBo> moduleBos) {
+<<<<<<< HEAD
 <<<<<<< master
 		String sql = prosql.getString("sub.sql.find.module.by.module.name");
+=======
+		String sql = prosql.getString("sub.sql.update.module.disconnect");
+>>>>>>> version1
 		return moduleDao.updateAll(moduleBos, sql);
 =======
 		String sql = prosql.getString("sub.sql.update.module.disconnect");
