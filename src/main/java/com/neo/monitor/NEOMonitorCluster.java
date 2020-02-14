@@ -276,7 +276,7 @@ public class NEOMonitorCluster {
 							moduleService.updateAll(moduleBo, jobsTmp);
 							String proc = pro.getString("sub.sql.redistribute");
 							// extendService.redistributeModuleDisconnect(jobsTmp, map, moduleBo, proc);
-							logger.info("master update db");
+							logger.info("master update db 279");
 						}
 					} else {
 						Long idMaster = checkMasterInListRetryFail(jobsTmp);
@@ -293,9 +293,8 @@ public class NEOMonitorCluster {
 								moduleBo.setIsMaster(1L);
 								// commnent
 								moduleService.updateAll(moduleBo, jobsTmp);
-								logger.info("master update db");
+								logger.info("master update db 296");
 								addJobMaster();
-								logger.info("Master update db");
 
 							} else { // nếu nó không được phép cập nhật làm master thì nó cập nhật lại thằng được
 										// chọn làm master
@@ -371,23 +370,24 @@ public class NEOMonitorCluster {
 		Boolean update = updateMaster();
 		if (update == true) {
 			//commnent
-			moduleService.updateAll(moduleBo,jobs);
-			logger.info("master update db");
+			moduleService.updateAll(moduleBo,listJob);
+			logger.info("master update db 374");
 		}else {
 			if(moduleBo.getIsMaster()==1) {
 				moduleBo.setState(1L);
-				moduleService.updateAll(moduleBo,jobs);
-				logger.info("master update");
+				moduleService.updateAll(moduleBo,listJob);
+				logger.info("master update 379");
+				update = true;
 			}
 		}
-		if (moduleBo.getIsMaster() == 1L && checkUpdateMaster()) {
+		if (moduleBo.getIsMaster() == 1L && checkUpdateMaster() && !update) {
 			// commnent
 			int k = moduleService.updateAll(moduleBo, listJob);
-			logger.info("master update db ");
+			logger.info("master update db 385");
 		}
-		if (map.isEmpty()) {
+		if (map.isEmpty() && !update) {
 			int k = moduleService.updateAll(moduleBo, listJob);
-			logger.info("master update db");
+			logger.info("master update db 389");
 		}
 
 	}
