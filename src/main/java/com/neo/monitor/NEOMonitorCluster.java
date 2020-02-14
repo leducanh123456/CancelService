@@ -295,7 +295,7 @@ public class NEOMonitorCluster {
 								moduleService.updateAll(moduleBo, jobsTmp);
 								logger.info("master update db");
 								addJobMaster();
-								logger.info("Update master  and all module");
+								logger.info("Master update db");
 
 							} else { // nếu nó không được phép cập nhật làm master thì nó cập nhật lại thằng được
 										// chọn làm master
@@ -372,16 +372,12 @@ public class NEOMonitorCluster {
 		if (update == true) {
 			//commnent
 			moduleService.updateAll(moduleBo,jobs);
-			logger.info("master update db getAllClient");
-			System.out.println("nó có phải là master hay không " +moduleBo.getIsMaster());
-			System.out.println("số lượng thằng đã connect đến nó " + listJob.size());
-			
-			
+			logger.info("master update db");
 		}else {
 			if(moduleBo.getIsMaster()==1) {
 				moduleBo.setState(1L);
 				moduleService.updateAll(moduleBo,jobs);
-				logger.info("master update db else");
+				logger.info("master update");
 			}
 		}
 		if (moduleBo.getIsMaster() == 1L && checkUpdateMaster()) {
