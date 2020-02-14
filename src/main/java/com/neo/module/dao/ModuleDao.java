@@ -154,6 +154,7 @@ public class ModuleDao {
 			callableStatement = connection.prepareCall(proc);
 			callableStatement.setLong(1, idNewMaster);
 			callableStatement.setString(2, moduleOn);
+			callableStatement.setString(3, modulegroup);
 			callableStatement.execute();
 		}catch (Exception e) {
 			e.printStackTrace();
@@ -182,7 +183,7 @@ public class ModuleDao {
 	 * 
 	 * @param moduleBos
 	 */
-	public int updateAll(List<ModuleBo> moduleBos, String proc, String moduleGroup) {
+	public int updateAll(ModuleBo module,List<ModuleBo> moduleBos, String proc, String moduleGroup) {
 		Connection connection = null;
 		CallableStatement callableStatement = null;
 		if(moduleBos.isEmpty()) {
@@ -198,11 +199,12 @@ public class ModuleDao {
 			}
 			str.delete(str.length()-1, str.length());
 			callableStatement = connection.prepareCall(proc);
-			callableStatement.setString(1, str.toString());
-			callableStatement.setString(3, moduleGroup);
-			callableStatement.registerOutParameter(2, OracleTypes.INTEGER);
+			callableStatement.setLong(1, module.getId());
+			callableStatement.setString(2, str.toString());
+			callableStatement.setString(4, moduleGroup);
+			callableStatement.registerOutParameter(3, OracleTypes.INTEGER);
 			callableStatement.execute();
-			k = callableStatement.getInt(2);
+			k = callableStatement.getInt(3);
 			return k;
 			
 		} catch (Exception e) {

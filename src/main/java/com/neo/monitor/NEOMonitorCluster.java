@@ -55,31 +55,6 @@ public class NEOMonitorCluster {
 	@Qualifier("schedulerFactory")
 	private SchedulerFactoryBean scheduler;
 
-	
-	@Autowired
-	@Qualifier("distributetionOldRecord")
-	private CronTriggerFactoryBean distributionOldRecord;
-
-	@Autowired
-	@Qualifier("jobDistributetionOldRecord")
-	private JobDetailFactoryBean jobDistributionOldRecord;
-
-	@Autowired
-	@Qualifier("cancelService")
-	private CronTriggerFactoryBean cancelService;
-
-	@Autowired
-	@Qualifier("jobCancelService")
-	private JobDetailFactoryBean jobCancelService;
-	
-	@Autowired
-	@Qualifier("JobMoveData")
-	private JobDetailFactoryBean JobMoveData;
-
-	@Autowired
-	@Qualifier("moveData")
-	private CronTriggerFactoryBean moveData;
-
 	@Autowired
 	@Qualifier("retry")
 	private ConcurrentHashMap<ModuleBo, SocketChannel> retry;
@@ -298,7 +273,7 @@ public class NEOMonitorCluster {
 					if (moduleBo.getIsMaster() == 1) {// nếu nó là master nó có quyền được cập nhật
 						if(!jobsTmp.isEmpty()) {
 							//comment
-							//moduleService.updateAll(jobsTmp);
+							moduleService.updateAll(moduleBo,jobsTmp);
 							String proc = pro.getString("sub.sql.redistribute");
 							//extendService.redistributeModuleDisconnect(jobsTmp, map, moduleBo, proc);
 							System.out.println("chạy cập nhật liên tục");
@@ -317,7 +292,7 @@ public class NEOMonitorCluster {
 								//extendService.redistributeModuleDisconnect(jobsTmp, map, moduleBo, proc);
 								moduleBo.setIsMaster(1L);
 								//commnent
-								moduleService.updateAll(jobsTmp);
+								moduleService.updateAll(moduleBo,jobsTmp);
 								addJobMaster();
 								logger.info("Update master  and all module");
 
@@ -358,8 +333,16 @@ public class NEOMonitorCluster {
 		Boolean update = updateMaster();
 		if (update == true) {
 			//commnent
-			moduleService.updateAll(jobs);
+			moduleService.updateAll(moduleBo,jobs);
+			
+			
+		}else {
+			if(moduleBo.getIsMaster()==1) {
+				moduleBo.setState(1L);
+				moduleService.updateAll(moduleBo,jobs);
+			}
 		}
+		
 		for (ModuleBo moduleBo : jobs) {
 			if (pro.getString("module.name").trim().equals(moduleBo.getModuleName()))
 				continue;// không call đến chính job đó
@@ -397,7 +380,7 @@ public class NEOMonitorCluster {
 		}
 		if (moduleBo.getIsMaster() == 1L) {
 			//commnent
-			moduleService.updateAll(listJob);
+			moduleService.updateAll(moduleBo,listJob);
 		}
 
 	}
@@ -579,37 +562,6 @@ public class NEOMonitorCluster {
 		Scheduler sc1 = scheduler.getScheduler();
 		try {
 			sc1.start();
-			
-			if (sc1.checkExists(jobFilterData.getObject().getKey())) {
-				logger.info("Job filter data already exist, delete old jobFilterData");
-				sc1.deleteJob(jobFilterData.getObject().getKey());
-			}
-
-			if (sc1.checkExists(JobMoveData.getObject().getKey())) {
-				logger.info("Job move data extend to table queue already exist, delete old  move data extend to table queue");
-				sc1.deleteJob(JobMoveData.getObject().getKey());
-			}
-			
-			if(sc1.checkExists(jobDistributionOldRecord.getObject().getKey())) {
-				logger.info("Job move data extenddistributionOldRecord to table queue already exist, delete old  move data extenddistributionOldRecord to table queue");
-				sc1.deleteJob(jobDistributionOldRecord.getObject().getKey());
-			}
-			if(sc1.checkExists(jobCancelService.getObject().getKey())) {
-				logger.info("Job cancel service already exist, delete old job cancel service");
-				sc1.deleteJob(jobDistributionOldRecord.getObject().getKey());
-			}
-			
-			logger.info("Add job filter extend in master");
-			sc1.scheduleJob(jobFilterData.getObject(), filterData.getObject());
-			
-			logger.info("Add job move extend to table queue  in master");
-			sc1.scheduleJob(JobMoveData.getObject(), moveData.getObject());
-			
-			logger.info("Add job distributionOldRecord in master");
-			sc1.scheduleJob(jobDistributionOldRecord.getObject(), distributionOldRecord.getObject());
-			
-			logger.info("Add job cancel service in master");
-			sc1.scheduleJob(jobCancelService.getObject(), cancelService.getObject());
 			
 		} catch (SchedulerException e) {
 			e.printStackTrace();
