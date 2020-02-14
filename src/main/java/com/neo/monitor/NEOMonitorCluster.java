@@ -336,6 +336,8 @@ public class NEOMonitorCluster {
 			//commnent
 			moduleService.updateAll(moduleBo,jobs);
 			logger.info("master update db getAllClient");
+			System.out.println("nó có phải là master hay không " +moduleBo.getIsMaster());
+			System.out.println("số lượng thằng đã connect đến nó " + listJob.size());
 			
 			
 		}else {
