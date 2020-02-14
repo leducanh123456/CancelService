@@ -331,22 +331,6 @@ public class NEOMonitorCluster {
 	public void getAllClient(List<ModuleBo> jobs) {
 
 		List<ModuleBo> listJob = new ArrayList<>();
-		Boolean update = updateMaster();
-		if (update == true) {
-			//commnent
-			moduleService.updateAll(moduleBo,jobs);
-			logger.info("master update db getAllClient");
-			System.out.println("nó có phải là master hay không " +moduleBo.getIsMaster());
-			System.out.println("số lượng thằng đã connect đến nó " + listJob.size());
-			
-			
-		}else {
-			if(moduleBo.getIsMaster()==1) {
-				moduleBo.setState(1L);
-				moduleService.updateAll(moduleBo,jobs);
-				logger.info("master update db else");
-			}
-		}
 		
 		for (ModuleBo moduleBo : jobs) {
 			if (pro.getString("module.name").trim().equals(moduleBo.getModuleName()))
@@ -381,6 +365,22 @@ public class NEOMonitorCluster {
 				moduleService.updateMaster(map, moduleBo);
 				addJobMaster();
 
+			}
+		}
+		Boolean update = updateMaster();
+		if (update == true) {
+			//commnent
+			moduleService.updateAll(moduleBo,jobs);
+			logger.info("master update db getAllClient");
+			System.out.println("nó có phải là master hay không " +moduleBo.getIsMaster());
+			System.out.println("số lượng thằng đã connect đến nó " + listJob.size());
+			
+			
+		}else {
+			if(moduleBo.getIsMaster()==1) {
+				moduleBo.setState(1L);
+				moduleService.updateAll(moduleBo,jobs);
+				logger.info("master update db else");
 			}
 		}
 		if (moduleBo.getIsMaster() == 1L) {
