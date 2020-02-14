@@ -57,10 +57,10 @@ public class ModuleService {
 		
 		StringBuilder str = new StringBuilder();
 		for (Map.Entry<ModuleBo, SocketChannel> entryMap : modules.entrySet()) {
-			str.append(entryMap.getKey().getModuleName());
+			str.append(entryMap.getKey().getId());
 			str.append(",");
 		}
-		str.append(moduleBo.getModuleName());
+		str.append(moduleBo.getId());
 		moduleDao.updateMaster(str.toString(),moduleBo.getId());
 	}
 
@@ -70,7 +70,7 @@ public class ModuleService {
 	 * @param moduleBos
 	 */
 	public int updateAll(List<ModuleBo> moduleBos) {
-		String sql = prosql.getString("sub.sql.find.module.by.module.name");
+		String sql = prosql.getString("sub.sql.update.module.disconnect");
 		return moduleDao.updateAll(moduleBos, sql);
 	}
 	
