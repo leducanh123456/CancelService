@@ -3,25 +3,41 @@ package com.neo.config;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+import org.springframework.scheduling.quartz.CronTriggerFactoryBean;
+import org.springframework.scheduling.quartz.JobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 
+import com.neo.cancelservie.service.CancelService;
 import com.neo.module.bo.ModuleBo;
 import com.neo.monitor.NEOMonitorCluster;
+import com.neo.squartz.FilterCancelService;
 
 @Configuration
 public class ConfigSquartz {
 	
-	SchedulerFactoryBean scheduler = new SchedulerFactoryBean();
+	@Autowired
+	private CancelService cancelService;
 	
+	@Autowired
+	@Qualifier("propertiesConfig")
+	private PropertiesConfiguration pro;
+	
+	private Map<String, Object> map = new HashMap<String, Object>();
+
+	SchedulerFactoryBean scheduler = new SchedulerFactoryBean();
+
 	@Bean(name = "schedulerFactory")
 	public SchedulerFactoryBean schedulerFactoryBean() {
 		scheduler.setTriggers(
@@ -29,6 +45,29 @@ public class ConfigSquartz {
 		);
 		return scheduler;
 		
+	}
+	
+	@Bean(name = "jobFilterData")
+	public JobDetailFactoryBean jobDetailFactoryBeansFilter() {
+		JobDetailFactoryBean factory = new JobDetailFactoryBean();
+		factory.setJobClass(FilterCancelService.class);
+		map.put("cancelService", cancelService);
+		map.put("pro", pro);
+		map.put("mapJobSocket", getMapJobSocket());
+		factory.setJobDataAsMap(map);
+		factory.setGroup("filterData");
+		factory.setName("filterData");
+		return factory;
+	}
+
+	@Bean(name = "filterData")
+	public CronTriggerFactoryBean cronTriggerFactoryBeanFilter() {
+		CronTriggerFactoryBean stFactory = new CronTriggerFactoryBean();
+		stFactory.setJobDetail(jobDetailFactoryBeansFilter().getObject());
+		stFactory.setName("filterData");
+		stFactory.setGroup("filterData");
+		stFactory.setCronExpression(pro.getString("filter.data.extend.scheduler").trim());
+		return stFactory;
 	}
 	
 	@Bean("monitor")
@@ -42,9 +81,6 @@ public class ConfigSquartz {
 		List<ModuleBo> jobs = Collections.synchronizedList(new ArrayList<ModuleBo>());
 		return jobs;
 	}
-	@Autowired
-	@Qualifier("propertiesConfig")
-	private PropertiesConfiguration pro;
 	
 	@Bean("mapJobSocket")
 	@Scope("singleton")
@@ -62,5 +98,10 @@ public class ConfigSquartz {
 	public ModuleBo getJobBo() {
 		return new ModuleBo();
 	}
-	
+	@Bean("serviceCmd")
+	@Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
+	public Map<String,Map<String,String>> getListServiceCmd() {
+		Map<String, Map<String, String>> serviceCmds = new HashMap<String, Map<String,String>>();
+		return serviceCmds;
+	}
 }
