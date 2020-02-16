@@ -25,9 +25,10 @@ public class CancelService {
 		
 		return dao.getListCancelService(proc, module, numberRecord);
 	}
-	public  int redistributeModuleDisconnect(String proc,ConcurrentHashMap<ModuleBo, SocketChannel> map,List<ModuleBo> jobsTmp, String table) {
+	public  int redistributeModuleDisconnect(String proc,ConcurrentHashMap<ModuleBo, SocketChannel> map,List<ModuleBo> jobsTmp,ModuleBo module, String table) {
 		StringBuilder moduleNameactive = new StringBuilder();
-		
+		moduleNameactive.append(module.getModuleName());
+		moduleNameactive.append(",");
 		for (Map.Entry<ModuleBo, SocketChannel> tmp : map.entrySet()) {
 			moduleNameactive.append(tmp.getKey().getModuleName());
 			moduleNameactive.append(",");

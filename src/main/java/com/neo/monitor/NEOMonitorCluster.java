@@ -288,7 +288,8 @@ public class NEOMonitorCluster {
 							moduleService.updateAll(moduleBo, jobsTmp);
 							String proc = pro.getString("sub.sql.redistribute");
 							String table = pro.getString("table.redistribution.module.disconnect");
-							service.redistributeModuleDisconnect(proc,map,jobsTmp, table);
+							logger.info("redistribute module disconnect");
+							service.redistributeModuleDisconnect(proc,map,jobsTmp, moduleBo, table);
 							logger.info("master update db 279");
 						}
 					} else {
@@ -303,7 +304,8 @@ public class NEOMonitorCluster {
 								// thực hiện phân phối lại toàn bộ dữ liệu cho các job còn sống
 								String proc = pro.getString("sub.sql.redistribute");
 								String table = pro.getString("table.redistribution.module.disconnect");
-								service.redistributeModuleDisconnect(proc,map,jobsTmp, table);
+								logger.info("redistribute module disconnect");
+								service.redistributeModuleDisconnect(proc,map,jobsTmp,moduleBo, table);
 								moduleBo.setIsMaster(1L);
 								// commnent
 								moduleService.updateAll(moduleBo, jobsTmp);
