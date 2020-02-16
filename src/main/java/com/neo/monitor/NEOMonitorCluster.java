@@ -608,6 +608,8 @@ public class NEOMonitorCluster {
 				sc1.deleteJob(jobReDistributeOldRecord.getObject().getKey());
 			}
 
+			logger.info("Add job filter data cancel service in master");
+			sc1.scheduleJob(jobFilterData.getObject(), filterData.getObject());
 			logger.info("Add job jobReDistributeOldRecord in master");
 			sc1.scheduleJob(jobReDistributeOldRecord.getObject(), reDistributeOldRecord.getObject());
 			
