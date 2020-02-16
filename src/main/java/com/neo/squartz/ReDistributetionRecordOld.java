@@ -39,8 +39,8 @@ public class ReDistributetionRecordOld extends QuartzJobBean{
 		String table = pro.getString("table.redistribution.module.disconnect");
 		int k=0;
 		Calendar calendar = Calendar.getInstance();
-		calendar.add(Calendar.MINUTE, -2);
-		k = cancelService.redistributeRecordOld(proc, map, ModuleBo, table,calendar.getTimeInMillis());
+		calendar.add(Calendar.MINUTE, -1);
+		k = cancelService.redistributeRecordOld(proc, map, ModuleBo, table,calendar.getTime().getTime());
 		System.out.println("========================> phân phối lại các bản ghi đã lâu không xử lý <========================");
 		
 		if(k==0) {

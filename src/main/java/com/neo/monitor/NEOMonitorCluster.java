@@ -167,6 +167,15 @@ public class NEOMonitorCluster {
 							if (moduleBotmp != null) {
 								logger.info("add module {} in map", moduleBotmp.getModuleName());
 								moduleBotmp.setState(1L);
+								ModuleBo mtmp = null;
+								for (Map.Entry<ModuleBo, SocketChannel> entry : map.entrySet()) {
+									if(moduleBotmp.getId()==entry.getKey().getId()) {
+										mtmp = entry.getKey();
+									}
+								}
+								if(mtmp!=null) {
+									map.remove(mtmp);
+								}
 								map.put(moduleBotmp, socketChannel);
 							} else {
 								logger.info("close socket");
