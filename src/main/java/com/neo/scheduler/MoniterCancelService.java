@@ -15,8 +15,8 @@ private final Logger logger = LoggerFactory.getLogger(CleanMem.class);
 
 	@Scheduled(fixedDelayString = "${fixeddelay.cancel.service.in.milliseconds}")
 	public void scheduleTaskWithFixedDelay() {
-		logger.info("clean memory......");
-		System.gc();
+//		logger.info("clean memory......");
+//		System.gc();
 	}
 
 	public void scheduleTaskWithInitialDelay() {

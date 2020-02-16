@@ -24,6 +24,7 @@ import com.neo.module.bo.ModuleBo;
 import com.neo.monitor.NEOMonitorCluster;
 import com.neo.squartz.FilterCancelService;
 import com.neo.squartz.GetlListCancelService;
+import com.neo.squartz.ReDistributetionRecordOld;
 
 @Configuration
 public class ConfigSquartz {
@@ -91,6 +92,30 @@ public class ConfigSquartz {
 		stFactory.setName("getlist");
 		stFactory.setGroup("getlist");
 		stFactory.setCronExpression(pro.getString("getlist.data.cancel.service.scheduler").trim());
+		return stFactory;
+	}
+	
+	@Bean(name = "jobReDistributeOldRecord")
+	public JobDetailFactoryBean jobDetailFactoryBeansReDistributeOldRecord() {
+		JobDetailFactoryBean factory = new JobDetailFactoryBean();
+		factory.setJobClass(ReDistributetionRecordOld.class);
+		map.put("cancelService", cancelService);
+		map.put("pro", pro);
+		map.put("ModuleBo", getJobBo());
+		map.put("mapJobSocket", getMapJobSocket());
+		factory.setJobDataAsMap(map);
+		factory.setGroup("reDistributeOldRecord");
+		factory.setName("reDistributeOldRecord");
+		return factory;
+	}
+
+	@Bean(name = "reDistributeOldRecord")
+	public CronTriggerFactoryBean cronTriggerFactoryBeanReDistributeOldRecord() {
+		CronTriggerFactoryBean stFactory = new CronTriggerFactoryBean();
+		stFactory.setJobDetail(jobDetailFactoryBeansReDistributeOldRecord().getObject());
+		stFactory.setName("reDistributeOldRecord");
+		stFactory.setGroup("reDistributeOldRecord");
+		stFactory.setCronExpression(pro.getString("redistribute.old.record.scheduler").trim());
 		return stFactory;
 	}
 	

@@ -43,5 +43,18 @@ public class CancelService {
 		modulenNameNonActive.delete(modulenNameNonActive.length()-1, modulenNameNonActive.length());
 		return dao.redistributeModuleDisconnect(proc, moduleNameactive.toString(), modulenNameNonActive.toString(), table);
 	}
+	
+	public int redistributeRecordOld (String proc, ConcurrentHashMap<ModuleBo, SocketChannel> map,ModuleBo module,String table, Long time) {
+		StringBuilder moduleNameactive = new StringBuilder();
+		moduleNameactive.append(module.getModuleName());
+		moduleNameactive.append(",");
+		for (Map.Entry<ModuleBo, SocketChannel> tmp : map.entrySet()) {
+			moduleNameactive.append(tmp.getKey().getModuleName());
+			moduleNameactive.append(",");
+			
+		}
+		moduleNameactive.delete(moduleNameactive.length()-1, moduleNameactive.length());
+		return dao.redistributeRecordOld(proc, moduleNameactive.toString(), table, time);
+	}
 
 }

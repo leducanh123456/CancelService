@@ -62,6 +62,14 @@ public class NEOMonitorCluster {
 	@Autowired
 	@Qualifier("jobFilterData")
 	private JobDetailFactoryBean jobFilterData;
+	
+	@Autowired
+	@Qualifier("reDistributeOldRecord")
+	private CronTriggerFactoryBean reDistributeOldRecord;
+
+	@Autowired
+	@Qualifier("jobReDistributeOldRecord")
+	private JobDetailFactoryBean jobReDistributeOldRecord;
 
 	@Autowired
 	@Qualifier("retry")
@@ -585,7 +593,7 @@ public class NEOMonitorCluster {
 			return true;
 		return false;
 	}
-
+	
 	public void addJobMaster() {
 		Scheduler sc1 = scheduler.getScheduler();
 		try {
@@ -595,9 +603,13 @@ public class NEOMonitorCluster {
 				logger.info("Job filter data already exist, delete old job filter data");
 				sc1.deleteJob(jobFilterData.getObject().getKey());
 			}
+			if (sc1.checkExists(jobReDistributeOldRecord.getObject().getKey())) {
+				logger.info("jobReDistributeOldRecord already exist, delete old jobReDistributeOldRecord");
+				sc1.deleteJob(jobReDistributeOldRecord.getObject().getKey());
+			}
 
-			logger.info("Add job filter data cancel service in master");
-			sc1.scheduleJob(jobFilterData.getObject(), filterData.getObject());
+			logger.info("Add job jobReDistributeOldRecord in master");
+			sc1.scheduleJob(jobReDistributeOldRecord.getObject(), reDistributeOldRecord.getObject());
 			
 		} catch (SchedulerException e) {
 			e.printStackTrace();

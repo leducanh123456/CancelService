@@ -178,4 +178,45 @@ public class CancelServiceDao {
 		}
 		return k;
 	}
+	
+	public int redistributeRecordOld(String proc, String moduleNameactive,String table, Long time) {
+		long startTime = System.nanoTime();
+		int k=0;
+		Connection conn = null;
+		CallableStatement cs = null;
+		try {
+			conn = ds.getConnection();
+			cs = conn.prepareCall(proc);
+			cs.setString(1, moduleNameactive);
+			cs.setString(2, ",");
+			cs.setString(3, table);
+			cs.setLong(4, time);
+			cs.registerOutParameter(5, OracleTypes.INTEGER);
+			cs.execute();
+			k =  cs.getInt(5);
+			logger.info("Total time distribute module disconnect : {}", Utils.estimateTime(startTime));
+		} catch (Exception e) {
+			logger.error("distribute module disconnect Exception=" + ExtractException.exceptionToString(e));
+			return k;
+		} finally {
+			if (cs != null) {
+				try {
+					cs.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					logger.error("CallableStatement.close redistributeModuleDisconnect  Exception="
+							+ ExtractException.exceptionToString(e));
+				}
+			}
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					logger.error("connection.close distribute module disconnect Exception="
+							+ ExtractException.exceptionToString(e));
+				}
+			}
+		}
+		return k;
+	}
 }
