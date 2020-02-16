@@ -102,7 +102,7 @@ public class ConfigSquartz {
 		map.put("cancelService", cancelService);
 		map.put("pro", pro);
 		map.put("ModuleBo", getJobBo());
-		map.put("mapJobSocket", getMapJobSocket());
+		map.put("map", getMapJobSocket());
 		factory.setJobDataAsMap(map);
 		factory.setGroup("reDistributeOldRecord");
 		factory.setName("reDistributeOldRecord");

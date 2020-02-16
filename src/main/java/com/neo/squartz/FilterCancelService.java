@@ -41,6 +41,7 @@ public class FilterCancelService extends QuartzJobBean{
 			modules.append(",");
 		}
 		modules.delete(modules.length()-1, modules.length());
+		System.out.println("danh sách khi fileter là : " + modules.toString());
 		int k = cancelService.cancelServiceFilter(proc, modules.toString());
 		
 		if(k==0) {
