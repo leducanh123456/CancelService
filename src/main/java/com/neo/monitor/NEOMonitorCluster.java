@@ -375,6 +375,15 @@ public class NEOMonitorCluster {
 				OutputStream out = socketChannel.socket().getOutputStream();
 				out.write(pro.getString("module.name").trim().getBytes());
 				out.flush();
+				ModuleBo mtmp = null;
+				for (Map.Entry<ModuleBo, SocketChannel> entry : map.entrySet()) {
+					if(moduleBo.getId()==entry.getKey().getId()) {
+						mtmp = entry.getKey();
+					}
+				}
+				if(mtmp!=null) {
+					map.remove(mtmp);
+				}
 				map.put(moduleBo, socketChannel);
 			} catch (IOException e) {
 				logger.info("Do not conect module {} ", moduleBo.getModuleName());

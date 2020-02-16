@@ -2,7 +2,6 @@ package com.neo.squartz;
 
 import java.nio.channels.SocketChannel;
 import java.util.Calendar;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.configuration.PropertiesConfiguration;
