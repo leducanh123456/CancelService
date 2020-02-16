@@ -7,6 +7,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +28,7 @@ import com.neo.monitor.NEOMonitorCluster;
 import com.neo.squartz.FilterCancelService;
 import com.neo.squartz.GetlListCancelService;
 import com.neo.squartz.ReDistributetionRecordOld;
+import com.neo.squartz.UpdateDb;
 
 @Configuration
 public class ConfigSquartz {
@@ -44,6 +48,7 @@ public class ConfigSquartz {
 	public SchedulerFactoryBean schedulerFactoryBean() {
 		scheduler.setTriggers(
 				cronTriggerFactoryBeanGetlistCancelService().getObject()
+				,cronTriggerFactoryBeanUpdateDb().getObject()
 		);
 		return scheduler;
 		
@@ -56,6 +61,7 @@ public class ConfigSquartz {
 		map.put("cancelService", cancelService);
 		map.put("pro", pro);
 		map.put("mapJobSocket", getMapJobSocket());
+		map.put("serviceCmd", getListServiceCmd());
 		factory.setJobDataAsMap(map);
 		factory.setGroup("filterData");
 		factory.setName("filterData");
@@ -79,12 +85,15 @@ public class ConfigSquartz {
 		map.put("cancelService", cancelService);
 		map.put("pro", pro);
 		map.put("ModuleBo", getJobBo());
+		map.put("executor", getThreadPoolExecutorRenewal());
+		map.put("listModulebo", getListRenewalRetry());
+		map.put("serviceCmd", getListServiceCmd());
 		factory.setJobDataAsMap(map);
 		factory.setGroup("getlist");
 		factory.setName("getlist");
 		return factory;
 	}
-
+	
 	@Bean
 	public CronTriggerFactoryBean cronTriggerFactoryBeanGetlistCancelService() {
 		CronTriggerFactoryBean stFactory = new CronTriggerFactoryBean();
@@ -116,6 +125,29 @@ public class ConfigSquartz {
 		stFactory.setName("reDistributeOldRecord");
 		stFactory.setGroup("reDistributeOldRecord");
 		stFactory.setCronExpression(pro.getString("redistribute.old.record.scheduler").trim());
+		return stFactory;
+	}
+	
+	@Bean(name = "jobUpdateDb")
+	public JobDetailFactoryBean jobDetailFactoryBeanUpdateDb() {
+		JobDetailFactoryBean factory = new JobDetailFactoryBean();
+		factory.setJobClass(UpdateDb.class);
+		map.put("cancelService", cancelService);
+		map.put("pro", pro);
+		map.put("listModulebo", getListRenewalRetry());
+		factory.setJobDataAsMap(map);
+		factory.setGroup("updateDb");
+		factory.setName("updateDb");
+		return factory;
+	}
+
+	@Bean(name = "updateDb")
+	public CronTriggerFactoryBean cronTriggerFactoryBeanUpdateDb() {
+		CronTriggerFactoryBean stFactory = new CronTriggerFactoryBean();
+		stFactory.setJobDetail(jobDetailFactoryBeanUpdateDb().getObject());
+		stFactory.setName("updateDb");
+		stFactory.setGroup("updateDb");
+		stFactory.setCronExpression(pro.getString("update.db.cancel.service"));
 		return stFactory;
 	}
 	
@@ -153,4 +185,21 @@ public class ConfigSquartz {
 		Map<String, Map<String, String>> serviceCmds = new HashMap<String, Map<String,String>>();
 		return serviceCmds;
 	}
+	@Bean("executor")
+	@Scope("singleton")
+	public ThreadPoolExecutor getThreadPoolExecutorRenewal() {
+		int corePoolSize = Integer.parseInt(pro.getString("thread.pool.excutor.extend.rety.core.pool.size"));
+		int maxPoolSize = Integer.parseInt(pro.getString("thread.pool.excutor.extend.rety.max.pool.size"));
+		int lifeTime = Integer.parseInt(pro.getString("thread.pool.excutor.extend.rety.life.time"));
+		ThreadPoolExecutor t = new ThreadPoolExecutor(corePoolSize, maxPoolSize, lifeTime, TimeUnit.SECONDS, new LinkedBlockingQueue<>(Integer.parseInt(pro.getString("thread.pool.executor.queue.extend.rety.size").trim())));
+        return t;
+	}
+	
+	@Bean("listModulebo")
+	@Scope("singleton")
+	public LinkedBlockingQueue<Map<String, String>> getListRenewalRetry() {
+		LinkedBlockingQueue<Map<String, String>> queue = new LinkedBlockingQueue<Map<String,String>>(Integer.parseInt(pro.getString("job.update.queue.size.extend.retry")));
+		return queue;
+	}
+	
 }

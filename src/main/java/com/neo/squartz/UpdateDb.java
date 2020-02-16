@@ -1,52 +1,41 @@
 package com.neo.squartz;
 
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.PersistJobDataAfterExecution;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 
 import com.neo.cancelservie.service.CancelService;
-import com.neo.module.bo.ModuleBo;
 
 @PersistJobDataAfterExecution
 @DisallowConcurrentExecution
-public class GetlListCancelService extends QuartzJobBean{
-
+public class UpdateDb extends QuartzJobBean{
+	
 	private CancelService cancelService;
 	
 	private PropertiesConfiguration pro;
 	
-	private ModuleBo ModuleBo;
-	
-	private ThreadPoolExecutor executor;
-	
 	private LinkedBlockingQueue<Map<String, String>> listModulebo;
 	
-	private Map<String, Map<String, String>> serviceCmd;
-	
-	
+	private final Logger logger = LoggerFactory.getLogger(UpdateDb.class);
+
 	@Override
 	protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
+		logger.info("update Data base ==============================================>>>>>");
+		String proc = pro.getString("sub.sql.move.to.log");
 		
-		String proc = pro.getString("sub.sql.getlist.cancel.service");
-		String module = pro.getString("module.name");
-		String numberRecord = pro.getString("job.number.record.extend.excute");
-		List<Map<String, String>> list = cancelService.getListCancelService(proc, module, Integer.parseInt(numberRecord));
+		String queryUpdate = pro.getString("sub.sql.update.log");
 		
-		if(!list.isEmpty()) {
-			  for(Map<String, String> element : list) { 
-				  Runnable worker = new MultilThread(element,listModulebo,pro,serviceCmd); 
-				  executor.submit(worker); 
-			  }
-		  }
+		String batchSize = pro.getString("job.batch.size.extend.retry");
 		
+		cancelService.upDateBatchRenewalRetry(proc, queryUpdate, listModulebo, batchSize);
 		
 	}
 
@@ -66,22 +55,6 @@ public class GetlListCancelService extends QuartzJobBean{
 		this.pro = pro;
 	}
 
-	public ModuleBo getModuleBo() {
-		return ModuleBo;
-	}
-
-	public void setModuleBo(ModuleBo moduleBo) {
-		ModuleBo = moduleBo;
-	}
-
-	public ThreadPoolExecutor getExecutor() {
-		return executor;
-	}
-
-	public void setExecutor(ThreadPoolExecutor executor) {
-		this.executor = executor;
-	}
-
 	public LinkedBlockingQueue<Map<String, String>> getListModulebo() {
 		return listModulebo;
 	}
@@ -90,14 +63,4 @@ public class GetlListCancelService extends QuartzJobBean{
 		this.listModulebo = listModulebo;
 	}
 
-	public Map<String, Map<String, String>> getServiceCmd() {
-		return serviceCmd;
-	}
-
-	public void setServiceCmd(Map<String, Map<String, String>> serviceCmd) {
-		this.serviceCmd = serviceCmd;
-	}
-
-	
-	
 }

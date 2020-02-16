@@ -4,6 +4,7 @@ import java.nio.channels.SocketChannel;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -55,6 +56,15 @@ public class CancelService {
 		}
 		moduleNameactive.delete(moduleNameactive.length()-1, moduleNameactive.length());
 		return dao.redistributeRecordOld(proc, moduleNameactive.toString(), table, time);
+	}
+	
+	public Map<String, Map<String, String>> getServiceCmds(String proc) {
+		return dao.getServiceCmds(proc);
+	}
+	
+	public void upDateBatchRenewalRetry(String proc,String queryUpdate, LinkedBlockingQueue<Map<String, String>> queueRenewalRetry,
+			String batchSize) {
+		dao.upDateBatchRenewalRetry(proc, queryUpdate, queueRenewalRetry, batchSize);
 	}
 
 }
