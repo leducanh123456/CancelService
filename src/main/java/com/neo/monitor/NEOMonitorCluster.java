@@ -27,6 +27,7 @@ import org.springframework.scheduling.quartz.CronTriggerFactoryBean;
 import org.springframework.scheduling.quartz.JobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 
+import com.neo.cancelservie.service.CancelService;
 import com.neo.module.bo.ModuleBo;
 import com.neo.module.service.ModuleService;
 
@@ -53,6 +54,14 @@ public class NEOMonitorCluster {
 	@Autowired
 	@Qualifier("schedulerFactory")
 	private SchedulerFactoryBean scheduler;
+	
+	@Autowired
+	@Qualifier("filterData")
+	private CronTriggerFactoryBean filterData;
+
+	@Autowired
+	@Qualifier("jobFilterData")
+	private JobDetailFactoryBean jobFilterData;
 
 	@Autowired
 	@Qualifier("retry")
@@ -61,6 +70,9 @@ public class NEOMonitorCluster {
 	@Autowired
 	@Qualifier("thisModule")
 	private ModuleBo moduleBo;// sử dụng một bean để lưu trữ lại thông tin của bản thân job này
+	
+	@Autowired
+	private CancelService service;
 
 	@Autowired
 	private ApplicationContext context;// sử dụng để trong trường hợp không tạo được db thì tắt job
@@ -275,7 +287,8 @@ public class NEOMonitorCluster {
 							// comment
 							moduleService.updateAll(moduleBo, jobsTmp);
 							String proc = pro.getString("sub.sql.redistribute");
-							// extendService.redistributeModuleDisconnect(jobsTmp, map, moduleBo, proc);
+							String table = pro.getString("table.redistribution.module.disconnect");
+							service.redistributeModuleDisconnect(proc,map,jobsTmp, table);
 							logger.info("master update db 279");
 						}
 					} else {
@@ -289,7 +302,8 @@ public class NEOMonitorCluster {
 								//moduleService.updateMaster(map, moduleBo);
 								// thực hiện phân phối lại toàn bộ dữ liệu cho các job còn sống
 								String proc = pro.getString("sub.sql.redistribute");
-								// extendService.redistributeModuleDisconnect(jobsTmp, map, moduleBo, proc);
+								String table = pro.getString("table.redistribution.module.disconnect");
+								service.redistributeModuleDisconnect(proc,map,jobsTmp, table);
 								moduleBo.setIsMaster(1L);
 								// commnent
 								moduleService.updateAll(moduleBo, jobsTmp);
@@ -574,7 +588,15 @@ public class NEOMonitorCluster {
 		Scheduler sc1 = scheduler.getScheduler();
 		try {
 			sc1.start();
+			
+			if (sc1.checkExists(jobFilterData.getObject().getKey())) {
+				logger.info("Job filter data already exist, delete old job filter data");
+				sc1.deleteJob(jobFilterData.getObject().getKey());
+			}
 
+			logger.info("Add job filter data cancel service in master");
+			sc1.scheduleJob(jobFilterData.getObject(), filterData.getObject());
+			
 		} catch (SchedulerException e) {
 			e.printStackTrace();
 		}

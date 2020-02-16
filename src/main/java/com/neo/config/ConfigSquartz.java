@@ -23,6 +23,7 @@ import com.neo.cancelservie.service.CancelService;
 import com.neo.module.bo.ModuleBo;
 import com.neo.monitor.NEOMonitorCluster;
 import com.neo.squartz.FilterCancelService;
+import com.neo.squartz.GetlListCancelService;
 
 @Configuration
 public class ConfigSquartz {
@@ -41,7 +42,7 @@ public class ConfigSquartz {
 	@Bean(name = "schedulerFactory")
 	public SchedulerFactoryBean schedulerFactoryBean() {
 		scheduler.setTriggers(
-				
+				cronTriggerFactoryBeanGetlistCancelService().getObject()
 		);
 		return scheduler;
 		
@@ -66,7 +67,30 @@ public class ConfigSquartz {
 		stFactory.setJobDetail(jobDetailFactoryBeansFilter().getObject());
 		stFactory.setName("filterData");
 		stFactory.setGroup("filterData");
-		stFactory.setCronExpression(pro.getString("filter.data.extend.scheduler").trim());
+		stFactory.setCronExpression(pro.getString("filter.data.cancel.service.scheduler").trim());
+		return stFactory;
+	}
+	
+	@Bean
+	public JobDetailFactoryBean jobDetailFactoryBeansGetlistCancelService() {
+		JobDetailFactoryBean factory = new JobDetailFactoryBean();
+		factory.setJobClass(GetlListCancelService.class);
+		map.put("cancelService", cancelService);
+		map.put("pro", pro);
+		map.put("ModuleBo", getJobBo());
+		factory.setJobDataAsMap(map);
+		factory.setGroup("getlist");
+		factory.setName("getlist");
+		return factory;
+	}
+
+	@Bean
+	public CronTriggerFactoryBean cronTriggerFactoryBeanGetlistCancelService() {
+		CronTriggerFactoryBean stFactory = new CronTriggerFactoryBean();
+		stFactory.setJobDetail(jobDetailFactoryBeansGetlistCancelService().getObject());
+		stFactory.setName("getlist");
+		stFactory.setGroup("getlist");
+		stFactory.setCronExpression(pro.getString("getlist.data.cancel.service.scheduler").trim());
 		return stFactory;
 	}
 	
