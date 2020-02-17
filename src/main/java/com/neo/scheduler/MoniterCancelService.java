@@ -3,6 +3,7 @@ package com.neo.scheduler;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -23,6 +24,9 @@ import com.neo.utils.Utils;
 public class MoniterCancelService {
 	
 	public static boolean flag = true;
+	
+	public static boolean flagCheckServiceCmd = false;
+	
 	@Autowired
 	@Qualifier("executor")
 	private ThreadPoolExecutor executor;
@@ -53,8 +57,19 @@ public class MoniterCancelService {
 
 	@Scheduled(fixedDelayString = "${fixeddelay.cancel.service.in.milliseconds}")
 	public void scheduleTaskWithFixedDelay() {
-
+		
 		MoniterCancelService.flag = false;
+		//trong lần chạy đâu tiên có thể gây ra lỗi do thằng không phải là master chưa có được service_cmd nên cần kiểm tra
+		if(!flagCheckServiceCmd) {
+			logger.info("Get service_cmd");
+			long startTimecmd = System.nanoTime();
+			String procServiceCmd = pro.getString("sub.sql.get.cmd.service");
+			Map<String, Map<String, String>>  map = cancelService.getServiceCmds(procServiceCmd);
+			updateServiceCmd(map);
+			logger.info("Time run get serive cmd : {} ", Utils.convertTimeUnit(startTimecmd));
+			flagCheckServiceCmd=true;
+			return;
+		}
 		List<Map<String, String>> list = new ArrayList<Map<String,String>>();
 		Long startTime = System.nanoTime();
 		int sizeExcuteConfig = Integer.parseInt(pro.getString("job.number.record.extend.excute"));
@@ -87,6 +102,28 @@ public class MoniterCancelService {
 	}
 
 	public void scheduleTaskWithCronExpression() {
+	}
+	public void updateServiceCmd(Map<String, Map<String, String>>  map) {
+		List<String> listupdate = new ArrayList<String>();
+		Set<String> set = map.keySet();
+		for(String string : set) {
+			if(!serviceCmd.containsKey(string)) {
+				listupdate.add(string);
+			}
+		}
+		for(String string : listupdate) {
+			serviceCmd.put(string,map.get(string));
+		}
+		listupdate.clear();
+		Set<String> sets = serviceCmd.keySet();
+		for(String string : sets) {
+			if(!map.containsKey(string)) {
+				listupdate.add(string);
+			}
+		}
+		for(String string : listupdate) {
+			serviceCmd.remove(string);
+		}
 	}
 
 }

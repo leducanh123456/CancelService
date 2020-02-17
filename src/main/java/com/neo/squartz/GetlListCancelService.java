@@ -1,7 +1,9 @@
 package com.neo.squartz;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -10,11 +12,14 @@ import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.PersistJobDataAfterExecution;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 
 import com.neo.cancelservie.service.CancelService;
 import com.neo.module.bo.ModuleBo;
 import com.neo.scheduler.MoniterCancelService;
+import com.neo.utils.Utils;
 
 @PersistJobDataAfterExecution
 @DisallowConcurrentExecution
@@ -34,10 +39,22 @@ public class GetlListCancelService extends QuartzJobBean{
 	
 	public static boolean flag = true;
 	
+	private final Logger logger = LoggerFactory.getLogger(GetlListCancelService.class);
+	
 	
 	@Override
 	protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
 		flag = false;
+		if(!MoniterCancelService.flagCheckServiceCmd) {
+			logger.info("Get service_cmd");
+			long startTimecmd = System.nanoTime();
+			String procServiceCmd = pro.getString("sub.sql.get.cmd.service");
+			Map<String, Map<String, String>>  map = cancelService.getServiceCmds(procServiceCmd);
+			updateServiceCmd(map);
+			logger.info("Time run get serive cmd : {} ", Utils.convertTimeUnit(startTimecmd));
+			MoniterCancelService.flagCheckServiceCmd=true;
+			return;
+		}
 		int sizeExcuteConfig = Integer.parseInt(pro.getString("job.number.record.extend.excute"));
 		int sizeQueueUpdate = Integer.parseInt(pro.getString("job.update.queue.size.extend.retry"));
 		if(MoniterCancelService.flag&&executor.getQueue().size()<=sizeExcuteConfig
@@ -104,6 +121,28 @@ public class GetlListCancelService extends QuartzJobBean{
 
 	public void setServiceCmd(Map<String, Map<String, String>> serviceCmd) {
 		this.serviceCmd = serviceCmd;
+	}
+	public void updateServiceCmd(Map<String, Map<String, String>>  map) {
+		List<String> listupdate = new ArrayList<String>();
+		Set<String> set = map.keySet();
+		for(String string : set) {
+			if(!serviceCmd.containsKey(string)) {
+				listupdate.add(string);
+			}
+		}
+		for(String string : listupdate) {
+			serviceCmd.put(string,map.get(string));
+		}
+		listupdate.clear();
+		Set<String> sets = serviceCmd.keySet();
+		for(String string : sets) {
+			if(!map.containsKey(string)) {
+				listupdate.add(string);
+			}
+		}
+		for(String string : listupdate) {
+			serviceCmd.remove(string);
+		}
 	}
 	
 }
