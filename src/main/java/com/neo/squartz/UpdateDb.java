@@ -8,8 +8,6 @@ import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.PersistJobDataAfterExecution;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 
 import com.neo.cancelservie.service.CancelService;
@@ -23,12 +21,10 @@ public class UpdateDb extends QuartzJobBean{
 	private PropertiesConfiguration pro;
 	
 	private LinkedBlockingQueue<Map<String, String>> listModulebo;
-	
-	private final Logger logger = LoggerFactory.getLogger(UpdateDb.class);
 
 	@Override
 	protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
-		logger.info("update Data base ==============================================>>>>>");
+		
 		String proc = pro.getString("sub.sql.move.to.log");
 		
 		String queryUpdate = pro.getString("sub.sql.update.log");

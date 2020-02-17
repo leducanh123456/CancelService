@@ -15,7 +15,7 @@ public class CleanMem {
 
 	@Scheduled(fixedDelayString = "${fixeddelay.clean.mem.in.milliseconds}")
 	public void scheduleTaskWithFixedDelay() {
-		//logger.info("clean memory......");
+		logger.info("clean memory......");
 		System.gc();
 	}
 

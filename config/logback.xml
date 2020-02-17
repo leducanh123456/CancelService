@@ -9,7 +9,7 @@
 	    </encoder>
 	</appender>
 	
-	<!-- <appender name="system" class="ch.qos.logback.core.rolling.RollingFileAppender">
+	<appender name="system" class="ch.qos.logback.core.rolling.RollingFileAppender">
 	 	<file>${LOGS}/system.log</file>
 	 	<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 	    	<Pattern>%d{dd-MM-yyyy HH:mm:ss.SSS} | [%thread] | %highlight(%-5level) | %-5level %logger{36}.%M - %msg%n</Pattern>
@@ -19,26 +19,14 @@
 	    	<maxHistory>100</maxHistory>
 	    	<totalSizeCap>1GB</totalSizeCap>
 		</rollingPolicy>
-	</appender> -->
-	<appender name="EXTEND" class="ch.qos.logback.core.rolling.RollingFileAppender">
-	 	<file>${LOGS}/extend.log</file>
-	 	<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-	    	<Pattern>%d{dd-MM-yyyy HH:mm:ss.SSS} | [%thread] | %highlight(%-5level) | %-5level %logger{36}.%M - %msg%n</Pattern>
-	  	</encoder>
-		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-	    	<fileNamePattern>${LOGS}/extend_%d{dd-MM-yyyy}.log</fileNamePattern>
-	    	<maxHistory>100</maxHistory>
-	    	<totalSizeCap>1GB</totalSizeCap>
-		</rollingPolicy>
 	</appender>
-	
-	<appender name="EXTEND_UPDATE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-	 	<file>${LOGS}/extend_update.log</file>
+	<appender name="EXTEND" class="ch.qos.logback.core.rolling.RollingFileAppender">
+	 	<file>${LOGS}/cancelservice.log</file>
 	 	<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 	    	<Pattern>%d{dd-MM-yyyy HH:mm:ss.SSS} | [%thread] | %highlight(%-5level) | %-5level %logger{36}.%M - %msg%n</Pattern>
 	  	</encoder>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-	    	<fileNamePattern>${LOGS}/extend_update_%d{dd-MM-yyyy}.log</fileNamePattern>
+	    	<fileNamePattern>${LOGS}/cancelservice_%d{dd-MM-yyyy}.log</fileNamePattern>
 	    	<maxHistory>100</maxHistory>
 	    	<totalSizeCap>1GB</totalSizeCap>
 		</rollingPolicy>
@@ -60,16 +48,13 @@
 		<appender-ref ref="EXTEND" />
 	</logger>
 	
-	<logger name="com.neo.squartz.UpdateExtend" additivity="false" level="info">
-		<appender-ref ref="EXTEND_UPDATE" />
-	</logger>
 	
 	<logger name="com.neo.monitor.NEOMonitorCluster" additivity="false" level="info">
 		<appender-ref ref="MONITOR" />
 	</logger>
 	
-	<!-- <logger name="com.neo" additivity="false" level="debug">
+	<logger name="com.neo" additivity="false" level="debug">
 		<appender-ref ref="system" />
-	</logger> -->
+	</logger>
 	
 </configuration>

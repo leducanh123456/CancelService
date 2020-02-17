@@ -54,7 +54,7 @@ public class CancelServiceDao {
 			k = cs.getInt(3);
 			logger.info("Total time filter data  : {}", Utils.estimateTime(startTime));
 		} catch (Exception e) {
-			logger.error("move data Extend_data_inday => exten_data_queue Exception = "
+			logger.error("filter data Exception : "
 					+ ExtractException.exceptionToString(e));
 			return k;
 		} finally {
@@ -63,14 +63,14 @@ public class CancelServiceDao {
 					cs.close();
 				} catch (SQLException e) {
 					logger.error(
-							"CallableStatement.close move data Exception=" + ExtractException.exceptionToString(e));
+							"CallableStatement.close filter data Exception=" + ExtractException.exceptionToString(e));
 				}
 			}
 			if (conn != null) {
 				try {
 					conn.close();
 				} catch (SQLException e) {
-					logger.error("connection.close move data Exception=" + ExtractException.exceptionToString(e));
+					logger.error("connection.close filter data Exception=" + ExtractException.exceptionToString(e));
 				}
 			}
 		}
@@ -119,21 +119,21 @@ public class CancelServiceDao {
 					try {
 						rs.close();
 					} catch (SQLException e) {
-						logger.error("resultSet.close Exception=" + ExtractException.exceptionToString(e));
+						logger.error("resultSet.close get list Exception=" + ExtractException.exceptionToString(e));
 					}
 				}
 				if (ps != null) {
 					try {
 						ps.close();
 					} catch (SQLException e) {
-						logger.error("preparedStatement.close Exception = " + ExtractException.exceptionToString(e));
+						logger.error("preparedStatement.close get list Exception = " + ExtractException.exceptionToString(e));
 					}
 				}
 				if (conn != null) {
 					try {
 						conn.close();
 					} catch (SQLException e) {
-						logger.error("connection.close Exception = " + ExtractException.exceptionToString(e));
+						logger.error("connection.close get list Exception = " + ExtractException.exceptionToString(e));
 					}
 				}
 			}
@@ -196,9 +196,9 @@ public class CancelServiceDao {
 			cs.registerOutParameter(5, OracleTypes.INTEGER);
 			cs.execute();
 			k =  cs.getInt(5);
-			logger.info("Total time distribute module disconnect : {}", Utils.estimateTime(startTime));
+			logger.info("Total time distribute old record : {}", Utils.estimateTime(startTime));
 		} catch (Exception e) {
-			logger.error("distribute module disconnect Exception=" + ExtractException.exceptionToString(e));
+			logger.error("distribute old record Exception=" + ExtractException.exceptionToString(e));
 			return k;
 		} finally {
 			if (cs != null) {
@@ -206,7 +206,7 @@ public class CancelServiceDao {
 					cs.close();
 				} catch (SQLException e) {
 					// TODO Auto-generated catch block
-					logger.error("CallableStatement.close redistributeModuleDisconnect  Exception="
+					logger.error("CallableStatement.close distribute old record  Exception="
 							+ ExtractException.exceptionToString(e));
 				}
 			}
@@ -214,7 +214,7 @@ public class CancelServiceDao {
 				try {
 					conn.close();
 				} catch (SQLException e) {
-					logger.error("connection.close distribute module disconnect Exception="
+					logger.error("connection.close distribute old record Exception="
 							+ ExtractException.exceptionToString(e));
 				}
 			}
@@ -270,8 +270,8 @@ public class CancelServiceDao {
 				cs.setString(1, listId.toString());
 				cs.registerOutParameter(2, OracleTypes.INTEGER);
 				cs.execute();
-				int k = 0;
-				k = cs.getInt(2);
+				
+				cs.getInt(2);
 				
 				for (Map<String, String> map : list) {
 					stmt.setLong(1, Long.parseLong(map.get("SPEND_TIME")));

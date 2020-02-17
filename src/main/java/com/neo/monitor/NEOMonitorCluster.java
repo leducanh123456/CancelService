@@ -423,12 +423,35 @@ public class NEOMonitorCluster {
 			}
 		}
 		if (moduleBo.getIsMaster() == 1L && checkUpdateMaster() && !update) {
-			// commnent
 			int k = moduleService.updateAll(moduleBo, listJob);
+			if(k==0) {
+				for(int i=0;i<10;i++) {
+					k = moduleService.updateAll(moduleBo, listJob);
+					if(k==1) break;
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
 			logger.info("master update db 385");
 		}
 		if (map.isEmpty() && !update) {
 			int k = moduleService.updateAll(moduleBo, listJob);
+			if(k==0) {
+				for(int i=0;i<10;i++) {
+					k = moduleService.updateAll(moduleBo, listJob);
+					if(k==1) break;
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
 			logger.info("master update db 389");
 		}
 
