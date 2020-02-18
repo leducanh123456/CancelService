@@ -68,6 +68,7 @@ public class MoniterCancelService {
 			updateServiceCmd(map);
 			logger.info("Time run get serive cmd : {} ", Utils.convertTimeUnit(startTimecmd));
 			flagCheckServiceCmd=true;
+			MoniterCancelService.flag = true;
 			return;
 		}
 		List<Map<String, String>> list = new ArrayList<Map<String,String>>();

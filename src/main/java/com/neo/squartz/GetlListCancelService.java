@@ -53,6 +53,7 @@ public class GetlListCancelService extends QuartzJobBean{
 			updateServiceCmd(map);
 			logger.info("Time run get serive cmd : {} ", Utils.convertTimeUnit(startTimecmd));
 			MoniterCancelService.flagCheckServiceCmd=true;
+			MoniterCancelService.flag = false;
 			return;
 		}
 		int sizeExcuteConfig = Integer.parseInt(pro.getString("job.number.record.extend.excute"));
