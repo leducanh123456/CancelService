@@ -416,7 +416,6 @@ public class NEOMonitorCluster {
 			logger.info("master update db 374");
 		}else {
 			if(moduleBo.getIsMaster()==1) {
-				moduleBo.setState(1L);
 				moduleService.updateAll(moduleBo,listJob);
 				logger.info("master update 379");
 				update = true;
@@ -439,6 +438,7 @@ public class NEOMonitorCluster {
 			logger.info("master update db 385");
 		}
 		if (map.isEmpty() && !update) {
+			moduleBo.setIsMaster(1L);
 			int k = moduleService.updateAll(moduleBo, listJob);
 			if(k==0) {
 				for(int i=0;i<10;i++) {
@@ -453,6 +453,7 @@ public class NEOMonitorCluster {
 				}
 			}
 			logger.info("master update db 389");
+			addJobMaster();
 		}
 
 	}
