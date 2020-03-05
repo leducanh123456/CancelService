@@ -28,6 +28,7 @@ import com.neo.monitor.NEOMonitorCluster;
 import com.neo.squartz.FilterCancelService;
 import com.neo.squartz.GetlListCancelService;
 import com.neo.squartz.ReDistributetionRecordOld;
+import com.neo.squartz.UpdateCmdService;
 import com.neo.squartz.UpdateDb;
 
 @Configuration
@@ -49,6 +50,7 @@ public class ConfigSquartz {
 		scheduler.setTriggers(
 				cronTriggerFactoryBeanGetlistCancelService().getObject()
 				,cronTriggerFactoryBeanUpdateDb().getObject()
+				,cronTriggerFactoryBeanGetServiceCmd().getObject()
 		);
 		return scheduler;
 		
@@ -148,6 +150,29 @@ public class ConfigSquartz {
 		stFactory.setName("updateDb");
 		stFactory.setGroup("updateDb");
 		stFactory.setCronExpression(pro.getString("update.db.cancel.service"));
+		return stFactory;
+	}
+	
+	@Bean(name = "jobGetServiceCmd")
+	public JobDetailFactoryBean jobDetailFactoryBeansGetServiceCmd() {
+		JobDetailFactoryBean factory = new JobDetailFactoryBean();
+		factory.setJobClass(UpdateCmdService.class);
+		map.put("cancelService", cancelService);
+		map.put("pro", pro);
+		map.put("serviceCmds", getListServiceCmd());
+		factory.setJobDataAsMap(map);
+		factory.setGroup("getServiceCmd");
+		factory.setName("getServiceCmd");
+		return factory;
+	}
+
+	@Bean(name = "getServiceCmd")
+	public CronTriggerFactoryBean cronTriggerFactoryBeanGetServiceCmd() {
+		CronTriggerFactoryBean stFactory = new CronTriggerFactoryBean();
+		stFactory.setJobDetail(jobDetailFactoryBeansGetServiceCmd().getObject());
+		stFactory.setName("getServiceCmd");
+		stFactory.setGroup("getServiceCmd");
+		stFactory.setCronExpression(pro.getString("update.service.cmd").trim());
 		return stFactory;
 	}
 	

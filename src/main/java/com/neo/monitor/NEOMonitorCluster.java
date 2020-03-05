@@ -167,28 +167,10 @@ public class NEOMonitorCluster {
 							if (moduleBotmp != null) {
 								logger.info("add module {} in map", moduleBotmp.getModuleName());
 								moduleBotmp.setState(1L);
-								ModuleBo mtmp = null;
-								for (Map.Entry<ModuleBo, SocketChannel> entry : map.entrySet()) {
-									if(moduleBotmp.getId()==entry.getKey().getId()) {
-										mtmp = entry.getKey();
-									}
-								}
-								if(mtmp!=null) {
-									map.remove(mtmp);
-								}
-								map.put(moduleBotmp, socketChannel);
+								updateModuleInMap(moduleBotmp, socketChannel);
 							} else {
 								logger.info("close socket");
 								socketChannel.close();
-							}
-							if (moduleBo.getIsMaster() == 1 && moduleBotmp != null) {
-								logger.info("update modul conected {}", moduleBotmp.getModuleName());
-								moduleService.updateModule(moduleBotmp);
-								if (moduleBo.getState() == 0) {
-									moduleBo.setState(1L);
-									moduleService.updateModule(moduleBo);
-								}
-								logger.info("update database");
 							}
 
 						}
@@ -201,9 +183,10 @@ public class NEOMonitorCluster {
 			}
 		}).start();
 
-		getAllClient(jobs);
+		List<ModuleBo> listJobDisConnect = getAllClient(jobs);
 
 		if (moduleBo.getIsMaster() == 1) {
+			moduleService.updateAll(moduleBo, listJobDisConnect);
 			addJobMaster();
 		}
 		new Thread(new Runnable() {
@@ -244,6 +227,14 @@ public class NEOMonitorCluster {
 								if (info.indexOf(entry.getKey().getModuleName().trim()) != -1) {
 									// xác nhận thông tin
 									logger.info("successful confirmation  : {}", info);
+									// thực hiện chuyển master nếu cần
+									if (entry.getKey().getId() < moduleBo.getId() && entry.getKey().getIsMaster() == 1L
+											&& moduleBo.getIsMaster() == 1L) {
+										// xóa toàn bộ các job thuộc master sau đó cập nhật is master = 0;
+										deleteJobOldMaster();
+										updateListJob(entry.getKey().getId());
+										moduleBo.setIsMaster(0L);
+									}
 									InetSocketAddress address = new InetSocketAddress(entry.getKey().getIp(),
 											entry.getKey().getPort().intValue());
 									SocketChannel socketChannel = null;
@@ -253,6 +244,9 @@ public class NEOMonitorCluster {
 										out1.write(pro.getString("module.name").trim().getBytes());
 										out1.flush();
 										entry.setValue(socketChannel);
+										if (moduleBo.getIsMaster() == 1L) {
+											moduleService.updateModule(entry.getKey());
+										}
 									} catch (IOException e) {
 										e.printStackTrace();
 									}
@@ -277,7 +271,6 @@ public class NEOMonitorCluster {
 								logger.info("Retry success add one element in retry map, map size : {}", retry.size());
 
 							} else {
-								jobBoTmp.setState(0L);
 								jobsTmp.add(jobBoTmp);
 								logger.info("Retry not success add module {} element in list",
 										jobBoTmp.getModuleName());
@@ -285,11 +278,9 @@ public class NEOMonitorCluster {
 							}
 						}
 					}
-					// không loại bỏ các job vẫn còn kết nối với data base
-
-					removeModuleDisconnetDb(jobsTmp, moduleService.getNumberConnectTion(jobsTmp));
-
-					if (!jobsTmp.isEmpty()) {// xóa danh sách các modul retry không thành công ra khỏi map
+					if (!jobsTmp.isEmpty()) {
+						// không loại bỏ các job vẫn còn kết nối với data base
+						removeModuleDisconnetDb(jobsTmp, moduleService.getNumberConnectTion(jobsTmp));
 
 						for (ModuleBo moduleBo : jobsTmp) {
 							map.remove(moduleBo);
@@ -298,49 +289,53 @@ public class NEOMonitorCluster {
 						}
 						// xóa các job ra khỏi list đã kiểm tra
 
-					}
-					if (moduleBo.getIsMaster() == 1) {// nếu nó là master nó có quyền được cập nhật
-						if (!jobsTmp.isEmpty()) {
-							// comment
+						if (moduleBo.getIsMaster() == 1) {// nếu nó là master nó có quyền được cập nhật
+
 							moduleService.updateAll(moduleBo, jobsTmp);
 							String proc = pro.getString("sub.sql.redistribute");
 							String table = pro.getString("table.redistribution.module.disconnect");
 							logger.info("redistribute module disconnect");
-							service.redistributeModuleDisconnect(proc,map,jobsTmp, moduleBo, table);
-							logger.info("master update db 279");
-						}
-					} else {
-						Long idMaster = checkMasterInListRetryFail(jobsTmp);
-						if (idMaster != null) {
-							logger.info("Master in list Retry not success");
+							service.redistributeModuleDisconnect(proc, map, jobsTmp, moduleBo, table);
 
-							if (checkUpdateMaster()) {// nếu nó được cập nhật là master thì nó cập nhật lại chính nó là
-														// master và cập nhật lại toàn bộ những thằng đã chết trong DB
-								logger.info(" this module update is  Master ({})", moduleBo.getModuleName());
-								//moduleService.updateMaster(map, moduleBo);
-								// thực hiện phân phối lại toàn bộ dữ liệu cho các job còn sống
-								String proc = pro.getString("sub.sql.redistribute");
-								String table = pro.getString("table.redistribution.module.disconnect");
-								logger.info("redistribute module disconnect");
-								service.redistributeModuleDisconnect(proc,map,jobsTmp,moduleBo, table);
-								moduleBo.setIsMaster(1L);
-								// commnent
-								moduleService.updateAll(moduleBo, jobsTmp);
-								logger.info("master update db 296");
-								addJobMaster();
+						} else {
+							Long idMaster = checkMasterInListRetryFail(jobsTmp);
+							if (idMaster != null) {
+								logger.info("Master in list Retry not success");
+								if (checkUpdateMaster()) {
+									logger.info(" this module update is  Master ({})", moduleBo.getModuleName());
+									String proc = pro.getString("sub.sql.redistribute");
+									String table = pro.getString("table.redistribution.module.disconnect");
+									logger.info("redistribute module disconnect");
+									service.redistributeModuleDisconnect(proc, map, jobsTmp, moduleBo, table);
+									moduleBo.setIsMaster(1L);
+									jobs = moduleService.getAllModule();
+									for (ModuleBo m : jobs) {// cần có nó thì proc update disconnect chạy mới chuẩn được
+																// không thì nó cập nhật sai
+										if (m.getState() == 0) {
+											jobsTmp.add(m);
+										}
+									}
+									moduleService.updateAll(moduleBo, jobsTmp);
+									addJobMaster();
 
-							} else { // nếu nó không được phép cập nhật làm master thì nó cập nhật lại thằng được
-										// chọn làm master
-								Long idMaster1 = getMasterCurrent();
+								} else { // nếu nó không được phép cập nhật làm master thì nó cập nhật lại thằng được
+											// chọn làm master
+									Long idMaster1 = getMasterCurrent();
 
-								for (Map.Entry<ModuleBo, SocketChannel> map : map.entrySet()) {
-									if (map.getKey().getId() == idMaster1) {
-										map.getKey().setIsMaster(1L);
-										logger.info("update module {} is master", map.getKey().getModuleName());
+									for (Map.Entry<ModuleBo, SocketChannel> map : map.entrySet()) {
+										if (map.getKey().getId() == idMaster1) {
+											map.getKey().setIsMaster(1L);
+											logger.info("update module {} is master", map.getKey().getModuleName());
+										}
+									}
+									for (ModuleBo m : jobs) {
+										if (m.getId() == idMaster1) {
+											m.setIsMaster(1L);
+										}
 									}
 								}
-							}
 
+							}
 						}
 					}
 					try {
@@ -353,6 +348,25 @@ public class NEOMonitorCluster {
 			}
 		}).start();
 	}
+	@SuppressWarnings("unused")
+	private void updateModuleInMap(ModuleBo moduleBo, SocketChannel socketChannel) {
+		ModuleBo module = null;
+		for (Map.Entry<ModuleBo, SocketChannel> maps : map.entrySet()) {
+			if (moduleBo.getId() == maps.getKey().getId()) {
+				module = maps.getKey();
+			}
+		}
+		if (module != null) {
+			try {
+				map.get(module).close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			map.remove(module);
+		}
+		map.put(moduleBo, socketChannel);
+	}
 
 	/**
 	 * create list socket module active and conect servers
@@ -361,7 +375,7 @@ public class NEOMonitorCluster {
 	 * @param jobs danh sách job được lấy ra từ Db
 	 * 
 	 */
-	public void getAllClient(List<ModuleBo> jobs) {
+	public List<ModuleBo> getAllClient(List<ModuleBo> jobs) {
 
 		List<ModuleBo> listJob = new ArrayList<>();
 
@@ -375,16 +389,9 @@ public class NEOMonitorCluster {
 				OutputStream out = socketChannel.socket().getOutputStream();
 				out.write(pro.getString("module.name").trim().getBytes());
 				out.flush();
-				ModuleBo mtmp = null;
-				for (Map.Entry<ModuleBo, SocketChannel> entry : map.entrySet()) {
-					if(moduleBo.getId()==entry.getKey().getId()) {
-						mtmp = entry.getKey();
-					}
-				}
-				if(mtmp!=null) {
-					map.remove(mtmp);
-				}
-				map.put(moduleBo, socketChannel);
+				// kiem tra xem trong map co chua moi push
+
+				updateModuleInMap(moduleBo, socketChannel);
 			} catch (IOException e) {
 				logger.info("Do not conect module {} ", moduleBo.getModuleName());
 				// lưu lại danh sách các job mất kết nối
@@ -395,67 +402,83 @@ public class NEOMonitorCluster {
 
 		// không loại bỏ các job vẫn còn kết nối với data base
 		removeModuleDisconnetDb(listJob, moduleService.getNumberConnectTion(listJob));
-		// hoàn tất kết nối kiểm tra cập nhật master
-		// kiểm tra trong các mất kết nối có master không
-//		Long idMaster = checkMasterInListRetryFail(listJob);
-//		if (idMaster != null) {
-//			logger.info("Master in list Retry not success");
-//			// nếu có kiểm tra xem bản thân thằng này có được cập nhật monitor không
-//			if (checkUpdateMaster()) {
-//				logger.info("module {} is update Master", moduleBo.getModuleName());
-//				// nếu được cập nhật thì cập nhật lại để quét
-//				moduleService.updateMaster(map, moduleBo);
-//				addJobMaster();
-//
-//			}
-//		}
-		Boolean update = updateMaster();
-		if (update == true && moduleBo.getIsMaster() == 1L) {
-			//commnent
-			moduleService.updateAll(moduleBo,listJob);
-			logger.info("master update db 374");
-		}else {
-			if(moduleBo.getIsMaster()==1) {
-				moduleService.updateAll(moduleBo,listJob);
-				logger.info("master update 379");
-				update = true;
-			}
-		}
-		if (moduleBo.getIsMaster() == 1L && checkUpdateMaster() && !update) {
-			int k = moduleService.updateAll(moduleBo, listJob);
-			if(k==0) {
-				for(int i=0;i<10;i++) {
-					k = moduleService.updateAll(moduleBo, listJob);
-					if(k==1) break;
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-			}
-			logger.info("master update db 385");
-		}
-		if (map.isEmpty() && !update) {
+
+		if (map.isEmpty()) {
 			moduleBo.setIsMaster(1L);
-			int k = moduleService.updateAll(moduleBo, listJob);
-			if(k==0) {
-				for(int i=0;i<10;i++) {
-					k = moduleService.updateAll(moduleBo, listJob);
-					if(k==1) break;
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+		} else {
+			// không có master nào
+
+			Long id = Long.MAX_VALUE;
+			if (!checkExistMaster()) {
+				// kiểm tra xem nó có được làm master không nếu được thì cập nhật
+				if (isMaster()) {
+					id = moduleBo.getId();
+					moduleBo.setIsMaster(1L);
+				} else {
+					for (Map.Entry<ModuleBo, SocketChannel> map : map.entrySet()) {
+						if (map.getKey().getId() < id) {
+							id = map.getKey().getId();
+						}
 					}
 				}
+
+			} else {
+				if (moduleBo.getIsMaster() == 1) {
+					id = moduleBo.getId();
+				}
+				for (ModuleBo m : jobs) {
+					if (m.getIsMaster() == 1 && m.getId() < id) {
+						id = m.getId();
+						System.out.println("id 462 : " + id);
+					}
+				}
+				if (id == moduleBo.getId()) {
+					moduleBo.setIsMaster(1L);
+				} else {
+					moduleBo.setIsMaster(0L);
+				}
 			}
-			logger.info("master update db 389");
-			addJobMaster();
+			updateListJob(id);
 		}
 
+		return listJob;
+	}
+
+	public void updateListJob(Long id) {
+		for (ModuleBo moBo : jobs) {
+			if (moBo.getId() == id) {
+				moBo.setIsMaster(1L);
+			} else {
+				moBo.setIsMaster(0L);
+			}
+		}
+		for (Map.Entry<ModuleBo, SocketChannel> maps : map.entrySet()) {
+			if (maps.getKey().getId() == id) {
+				maps.getKey().setIsMaster(1L);
+			} else {
+				maps.getKey().setIsMaster(0L);
+			}
+		}
+	}
+
+	public boolean checkExistMaster() {
+		for (Map.Entry<ModuleBo, SocketChannel> map : map.entrySet()) {
+			if (map.getKey().getIsMaster() == 1L) {
+				return true;
+			}
+		}
+		if (moduleBo.getIsMaster() == 1L)
+			return true;
+		return false;
+	}
+
+	public boolean isMaster() {
+		for (Map.Entry<ModuleBo, SocketChannel> map : map.entrySet()) {
+			if (map.getKey().getId() < moduleBo.getId()) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
@@ -578,64 +601,21 @@ public class NEOMonitorCluster {
 		return false;
 	}
 
-	/**
-	 * update master
-	 */
-	public Boolean updateMaster() {
-		if (!checkExistMaster()) {//kiểm tra sự tồn tại của master trong danh sách đã load ra
-			jobs.get(0).setIsMaster(1L);
-			if (jobs.get(0).getId() == moduleBo.getId()) {
-				moduleBo.setIsMaster(1L);
-			}
-			return true;
-		} else {
-			if (checkDuplicateMaster()) {
-				fixDuplicateMaster();
-				return true;
-			}
-			return false;
+	public void deleteJobOldMaster() {
+		Scheduler sc1 = scheduler.getScheduler();
+		try {
+			sc1.start();
+			logger.info("Job filter data already exist, delete old job filter data");
+			sc1.deleteJob(jobFilterData.getObject().getKey());
+			logger.info("jobReDistributeOldRecord already exist, delete old jobReDistributeOldRecord");
+			sc1.deleteJob(jobReDistributeOldRecord.getObject().getKey());
 
-		}
-
-	}
-
-	public Boolean checkExistMaster() {
-		for (ModuleBo moduleBo : jobs) {
-			if (moduleBo.getIsMaster() == 1)
-				return true;
-		}
-		return false;
-	}
-
-	public void fixDuplicateMaster() {
-		int i = 0;
-		for (ModuleBo moduleBo : jobs) {
-			if (moduleBo.getIsMaster() == 1) {
-				break;
-			}
-			i++;
-		}
-		for (int j = i + 1; j < jobs.size(); j++) {
-			jobs.get(j).setIsMaster(0L);
-		}
-		for (ModuleBo moduleBos : jobs) {
-			if(moduleBo.getId() == moduleBos.getId()) {
-				moduleBo.setIsMaster(moduleBos.getIsMaster());
-			}
+		} catch (SchedulerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
-	public Boolean checkDuplicateMaster() {
-		int i = 0;
-		for (ModuleBo moduleBo : jobs) {
-			if (moduleBo.getState() == 1)
-				i++;
-		}
-		if (i > 1)
-			return true;
-		return false;
-	}
-	
 	public void addJobMaster() {
 		Scheduler sc1 = scheduler.getScheduler();
 		try {
@@ -670,5 +650,212 @@ public class NEOMonitorCluster {
 		return id;
 	}
 	
+	
+//	public SocketChannel retry(ModuleBo job) {
+//		InetSocketAddress address = new InetSocketAddress(job.getIp(), job.getPort().intValue());
+//		SocketChannel socketChannel = null;
+//		for (int i = 0; i < 5; i++) {
+//			try {
+//				logger.info("retry time {}", i);
+//				Thread.sleep(150);
+//				socketChannel = SocketChannel.open(address);
+//				OutputStream out = socketChannel.socket().getOutputStream();
+//				out.write(moduleBo.getModuleName().getBytes());
+//				out.flush();
+//				InputStream in = socketChannel.socket().getInputStream();
+//				byte tmp[] = new byte[100];
+//				in.read(tmp);
+//				String s = new String(tmp);
+//				if (!s.trim().equals(job.getModuleName().trim())) {
+//					socketChannel = null;
+//				} else {
+//					break;
+//				}
+//			} catch (Exception e) {
+//				socketChannel = null;
+//				logger.info("retry not success");
+//			}
+//		}
+//		return socketChannel;
+//
+//	}
+//
+//	/**
+//	 * delete element in map retry exists in map after add map retry in map
+//	 * 
+//	 */
+//	public void updateRetry() {
+//
+//		List<ModuleBo> jobstmp = new ArrayList<ModuleBo>();
+//		for (Map.Entry<ModuleBo, SocketChannel> entryRetry : retry.entrySet()) {
+//			for (Map.Entry<ModuleBo, SocketChannel> entryMap : map.entrySet()) {
+//				if (entryRetry.getKey().getId() == entryMap.getKey().getId()) {
+//					jobstmp.add(entryRetry.getKey());
+//				}
+//			}
+//		}
+//		for (ModuleBo moduleBo : jobstmp) {
+//			map.remove(moduleBo);
+//		}
+//
+//		map.putAll(retry);
+//		retry.clear();
+//
+//	}
+//
+//	/**
+//	 * check exists module master in list retry fail
+//	 * 
+//	 * @param jobsTmp list module retry fail
+//	 * @return
+//	 */
+//	public Long checkMasterInListRetryFail(List<ModuleBo> jobsTmp) {
+//
+//		for (ModuleBo moduleBo : jobsTmp) {
+//			if (moduleBo.getIsMaster() == 1) {
+//				moduleBo.setIsMaster(0L);
+//				return 1L;
+//			}
+//		}
+//		return null;
+//	}
+//
+//	/**
+//	 * check this module update master
+//	 * 
+//	 * @return
+//	 */
+//	public Boolean checkUpdateMaster() {
+//		for (Map.Entry<ModuleBo, SocketChannel> entryMap : map.entrySet()) {
+//			if (entryMap.getKey().getId() < moduleBo.getId()) {
+//				return false;
+//			}
+//		}
+//		return true;
+//	}
+//
+//	/**
+//	 * remove modules disconnect database
+//	 * 
+//	 * @param moduleBos
+//	 * @param objects
+//	 */
+//	public void removeModuleDisconnetDb(List<ModuleBo> moduleBos, List<Map<String, String>> map) {
+//		List<ModuleBo> list = new ArrayList<ModuleBo>();
+//		if (!map.isEmpty()) {
+//			for (ModuleBo moduleBo : moduleBos) {
+//				for (Map<String, String> object : map) {
+//					if (object.get(moduleBo.getModuleName()) != null) {
+//						list.add(moduleBo);
+//					}
+//				}
+//			}
+//			for (ModuleBo moduleBo : list) {
+//				moduleBos.remove(moduleBo);
+//			}
+//		}
+//	}
+//
+//	public Boolean isChecked(String moduleName, List<String> list) {
+//		for (String s : list) {
+//			if (s.trim().equals(moduleName.trim())) {
+//				return true;
+//			}
+//		}
+//		return false;
+//	}
+//
+//	/**
+//	 * update master
+//	 */
+//	public Boolean updateMaster() {
+//		if (!checkExistMaster()) {//kiểm tra sự tồn tại của master trong danh sách đã load ra
+//			jobs.get(0).setIsMaster(1L);
+//			if (jobs.get(0).getId() == moduleBo.getId()) {
+//				moduleBo.setIsMaster(1L);
+//			}
+//			return true;
+//		} else {
+//			if (checkDuplicateMaster()) {
+//				fixDuplicateMaster();
+//				return true;
+//			}
+//			return false;
+//
+//		}
+//
+//	}
+//
+//	public Boolean checkExistMaster() {
+//		for (ModuleBo moduleBo : jobs) {
+//			if (moduleBo.getIsMaster() == 1)
+//				return true;
+//		}
+//		return false;
+//	}
+//
+//	public void fixDuplicateMaster() {
+//		int i = 0;
+//		for (ModuleBo moduleBo : jobs) {
+//			if (moduleBo.getIsMaster() == 1) {
+//				break;
+//			}
+//			i++;
+//		}
+//		for (int j = i + 1; j < jobs.size(); j++) {
+//			jobs.get(j).setIsMaster(0L);
+//		}
+//		for (ModuleBo moduleBos : jobs) {
+//			if(moduleBo.getId() == moduleBos.getId()) {
+//				moduleBo.setIsMaster(moduleBos.getIsMaster());
+//			}
+//		}
+//	}
+//
+//	public Boolean checkDuplicateMaster() {
+//		int i = 0;
+//		for (ModuleBo moduleBo : jobs) {
+//			if (moduleBo.getState() == 1)
+//				i++;
+//		}
+//		if (i > 1)
+//			return true;
+//		return false;
+//	}
+//	
+//	public void addJobMaster() {
+//		Scheduler sc1 = scheduler.getScheduler();
+//		try {
+//			sc1.start();
+//			
+//			if (sc1.checkExists(jobFilterData.getObject().getKey())) {
+//				logger.info("Job filter data already exist, delete old job filter data");
+//				sc1.deleteJob(jobFilterData.getObject().getKey());
+//			}
+//			if (sc1.checkExists(jobReDistributeOldRecord.getObject().getKey())) {
+//				logger.info("jobReDistributeOldRecord already exist, delete old jobReDistributeOldRecord");
+//				sc1.deleteJob(jobReDistributeOldRecord.getObject().getKey());
+//			}
+//
+//			logger.info("Add job filter data cancel service in master");
+//			sc1.scheduleJob(jobFilterData.getObject(), filterData.getObject());
+//			logger.info("Add job jobReDistributeOldRecord in master");
+//			sc1.scheduleJob(jobReDistributeOldRecord.getObject(), reDistributeOldRecord.getObject());
+//			
+//		} catch (SchedulerException e) {
+//			e.printStackTrace();
+//		}
+//	}
+//
+//	public Long getMasterCurrent() {
+//		Long id = moduleBo.getId();
+//		for (Map.Entry<ModuleBo, SocketChannel> map : map.entrySet()) {
+//			if (map.getKey().getId() < id) {
+//				id = map.getKey().getId();
+//			}
+//		}
+//		return id;
+//	}
+//	
 
 }
