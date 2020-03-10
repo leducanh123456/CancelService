@@ -66,7 +66,7 @@ public class MultilThread implements Runnable {
 			for (int i = 0; i < arrayMedata.length; i++) {
 				callApi.put(arrayMedata[i].toUpperCase(), parameter.get(arrayMedata[i].toUpperCase()).toUpperCase());
 			}
-			
+			String uniqueID = StringRandom.getRandomCode("", 18);
 			StringBuilder string = new StringBuilder();
 			string.append(parameter.get("SERVICE_ID"));
 			string.append("_");
@@ -76,7 +76,6 @@ public class MultilThread implements Runnable {
 			if (serviceCmds.get(string.toString()) != null) {
 				Map<String, String> map = serviceCmds.get(string.toString());
 				callApi.put("SERVICE_CMD", map.get("CMD"));
-				String uniqueID = StringRandom.getRandomCode("", 18);
 				callApi.put("SESSION_ID", uniqueID);
 				
 				vASRequest = new VASRequest(callApi);
@@ -94,20 +93,14 @@ public class MultilThread implements Runnable {
 				}
 				parameter.put("SERVICE_CMD", map.get("CMD"));
 				parameter.put("SESSION_ID", uniqueID);
-//				logger.info(
-//						"ID : {}, MSISDN : {}, SERVICE_CODE : {}, SERVICE_CMD : {}, CHANNEL : {} , SESSION_ID: {}, STATUS : {}, STATUS_MESSAGE {}",
-//						parameter.get("ID"), parameter.get("MSISDN"), parameter.get("SERVICE_CODE"),
-//						parameter.get("SERVICE_CMD"), parameter.get("CHANNEL"), parameter.get("SESSION_ID"), status, statusMessage);
-				logger.info("request : {} , ===> response{}",vASRequest.getRequest(),result);
+				logger.info(" session : {} :request : {} , ",uniqueID, vASRequest.getRequest());
+				logger.info(" session : {} :response : {} , ",uniqueID, result);
 				parameter.put("STATUS", status);
 				parameter.put("STATUS_MESSAGE", statusMessage);
 			} else {
 				vASRequest = new VASRequest(callApi);
 				parameter.put("STATUS", "");
-//				logger.info("ID : {}, MSISDN : {}, SERVICE_CODE : {}, SERVICE_CMD : {}, CHANNEL : {} , SESSION_ID: {}, STATUS : {}, STATUS_MESSAGE {}",
-//						parameter.get("ID"), parameter.get("MSISDN"), parameter.get("SERVICE_CODE"),
-//						parameter.get("SERVICE_CMD"), parameter.get("CHANNEL"), parameter.get("SESSION_ID"), "", "CMD_DO_NOT_EXSIT");
-				logger.info("request :{}",vASRequest.getRequest());
+				logger.info(" session : {} :request : {} , ",uniqueID, vASRequest.getRequest());
 				parameter.replace("STATE", "-1");
 				parameter.put("SERVICE_CMD", "");
 			}

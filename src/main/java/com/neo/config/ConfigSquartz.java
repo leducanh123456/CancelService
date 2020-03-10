@@ -27,6 +27,7 @@ import com.neo.module.bo.ModuleBo;
 import com.neo.monitor.NEOMonitorCluster;
 import com.neo.squartz.FilterCancelService;
 import com.neo.squartz.GetlListCancelService;
+import com.neo.squartz.Managerment;
 import com.neo.squartz.ReDistributetionRecordOld;
 import com.neo.squartz.UpdateCmdService;
 import com.neo.squartz.UpdateDb;
@@ -41,6 +42,12 @@ public class ConfigSquartz {
 	@Qualifier("propertiesConfig")
 	private PropertiesConfiguration pro;
 	
+	@Autowired
+	private ReportExcutor reportExcutor;
+	
+	@Autowired
+	private ResourceManagement resourceManagement;
+	
 	private Map<String, Object> map = new HashMap<String, Object>();
 
 	SchedulerFactoryBean scheduler = new SchedulerFactoryBean();
@@ -51,6 +58,7 @@ public class ConfigSquartz {
 				cronTriggerFactoryBeanGetlistCancelService().getObject()
 				,cronTriggerFactoryBeanUpdateDb().getObject()
 				,cronTriggerFactoryBeanGetServiceCmd().getObject()
+				,cronTriggerFactoryBeansManagerment().getObject()
 		);
 		return scheduler;
 		
@@ -173,6 +181,29 @@ public class ConfigSquartz {
 		stFactory.setName("getServiceCmd");
 		stFactory.setGroup("getServiceCmd");
 		stFactory.setCronExpression(pro.getString("update.service.cmd").trim());
+		return stFactory;
+	}
+	
+	@Bean
+	public JobDetailFactoryBean jobDetailFactoryBeansManagerment() {
+		JobDetailFactoryBean factory = new JobDetailFactoryBean();
+		factory.setJobClass(Managerment.class);
+		map.put("resourceManagement", resourceManagement);
+		reportExcutor.setExecutor(getThreadPoolExecutorRenewal());
+		map.put("reportExcutor", reportExcutor);
+		factory.setJobDataAsMap(map);
+		factory.setGroup("jobManagerment");
+		factory.setName("jobManagerment");
+		return factory;
+	}
+
+	@Bean
+	public CronTriggerFactoryBean cronTriggerFactoryBeansManagerment() {
+		CronTriggerFactoryBean stFactory = new CronTriggerFactoryBean();
+		stFactory.setJobDetail(jobDetailFactoryBeansManagerment().getObject());
+		stFactory.setName("jobManagerment");
+		stFactory.setGroup("jobManagerment");
+		stFactory.setCronExpression(pro.getString("job.managerment.report"));
 		return stFactory;
 	}
 	

@@ -70,6 +70,12 @@
 		</dependency>
 	</dependencies>
 	<build>
+		 <resources>
+	        <resource>
+	            <directory>config</directory>
+	            <filtering>true</filtering>
+	        </resource>
+	    </resources>
 		<plugins>
 			<plugin>
 				<artifactId>maven-dependency-plugin</artifactId>
