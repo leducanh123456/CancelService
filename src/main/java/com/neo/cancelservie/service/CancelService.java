@@ -62,9 +62,9 @@ public class CancelService {
 		return dao.getServiceCmds(proc);
 	}
 	
-	public void upDateBatchRenewalRetry(String proc,String queryUpdate, LinkedBlockingQueue<Map<String, String>> queueRenewalRetry,
+	public void upDateBatchRenewalRetry(String insertLog,String deleteList,String queryUpdate, LinkedBlockingQueue<Map<String, String>> queueRenewalRetry,
 			String batchSize) {
-		dao.upDateBatchRenewalRetry(proc, queryUpdate, queueRenewalRetry, batchSize);
+		dao.upDateBatchRenewalRetry(insertLog,deleteList, queryUpdate, queueRenewalRetry, batchSize);
 	}
 
 }

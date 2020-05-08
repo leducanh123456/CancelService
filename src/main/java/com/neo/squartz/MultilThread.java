@@ -49,6 +49,8 @@ public class MultilThread implements Runnable {
 	}
 
 	public void appExtend() {
+		
+		
 		try {
 			Long startTime = System.currentTimeMillis();
 			
@@ -76,7 +78,8 @@ public class MultilThread implements Runnable {
 			if (serviceCmds.get(string.toString()) != null) {
 				Map<String, String> map = serviceCmds.get(string.toString());
 				callApi.put("SERVICE_CMD", map.get("CMD"));
-				callApi.put("SESSION_ID", uniqueID);
+				callApi.put("SESSION", uniqueID);
+				callApi.put("CLEAN_SUB", "1");
 				
 				vASRequest = new VASRequest(callApi);
 				
@@ -93,14 +96,14 @@ public class MultilThread implements Runnable {
 				}
 				parameter.put("SERVICE_CMD", map.get("CMD"));
 				parameter.put("SESSION_ID", uniqueID);
-				logger.info(" session : {} :request : {} , ",uniqueID, vASRequest.getRequest());
-				logger.info(" session : {} :response : {} , ",uniqueID, result);
+				logger.info(" session : {} :request : {}",uniqueID, vASRequest.getRequest());
+				logger.info(" session : {} :response : {}",uniqueID, result);
 				parameter.put("STATUS", status);
 				parameter.put("STATUS_MESSAGE", statusMessage);
 			} else {
 				vASRequest = new VASRequest(callApi);
 				parameter.put("STATUS", "");
-				logger.info(" session : {} :request : {} , ",uniqueID, vASRequest.getRequest());
+				logger.info(" session : {} :request : {}",uniqueID, vASRequest.getRequest());
 				parameter.replace("STATE", "-1");
 				parameter.put("SERVICE_CMD", "");
 			}

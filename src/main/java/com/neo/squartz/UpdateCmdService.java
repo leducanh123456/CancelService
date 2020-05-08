@@ -44,24 +44,27 @@ public class UpdateCmdService extends QuartzJobBean {
 	public void updateServiceCmd(Map<String, Map<String, String>> map) {
 		List<String> listupdate = new ArrayList<String>();
 		Set<String> set = map.keySet();
-		for (String string : set) {
-			if (!serviceCmds.containsKey(string)) {
+		for(String string : set) {
+			if(!serviceCmds.containsKey(string)) {
 				listupdate.add(string);
 			}
 		}
-		for (String string : listupdate) {
-			serviceCmds.put(string, map.get(string));
+		for(String string : listupdate) {
+			//serviceCmds.put(string,map.get(string));
+			loggerRun.info("add service_cmd :{} ----->in map ",map.get(string).get("CMD"));
 		}
 		listupdate.clear();
 		Set<String> sets = serviceCmds.keySet();
-		for (String string : sets) {
-			if (!map.containsKey(string)) {
+		for(String string : sets) {
+			if(!map.containsKey(string)) {
 				listupdate.add(string);
 			}
 		}
-		for (String string : listupdate) {
-			serviceCmds.remove(string);
+		for(String string : listupdate) {
+			loggerRun.info("delete service_cmd :{} ----->in map ",serviceCmds.get(string).get("CMD"));
+			//serviceCmds.remove(string);
 		}
+		serviceCmds = map;
 	}
 
 	public CancelService getCancelService() {

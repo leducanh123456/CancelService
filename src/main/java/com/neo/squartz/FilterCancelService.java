@@ -83,7 +83,8 @@ public class FilterCancelService extends QuartzJobBean{
 			}
 		}
 		for(String string : listupdate) {
-			serviceCmd.put(string,map.get(string));
+			//serviceCmd.put(string,map.get(string));
+			logger.info("add service_cmd :{} ----->in map ",map.get(string).get("CMD"));
 		}
 		listupdate.clear();
 		Set<String> sets = serviceCmd.keySet();
@@ -93,8 +94,10 @@ public class FilterCancelService extends QuartzJobBean{
 			}
 		}
 		for(String string : listupdate) {
-			serviceCmd.remove(string);
+			logger.info("delete service_cmd :{} ----->in map ",serviceCmd.get(string).get("CMD"));
+			//serviceCmd.remove(string);
 		}
+		serviceCmd = map;
 	}
 	public CancelService getCancelService() {
 		return cancelService;

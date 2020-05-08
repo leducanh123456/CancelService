@@ -222,8 +222,8 @@ public class CancelServiceDao {
 		return k;
 	}
 	
-
-	public void upDateBatchRenewalRetry(String proc,String queryUpdate, LinkedBlockingQueue<Map<String, String>> queueRenewalRetry,
+	@SuppressWarnings("resource")
+	public void upDateBatchRenewalRetry(String insertLog,String deleteList,String queryUpdate, LinkedBlockingQueue<Map<String, String>> queueRenewalRetry,
 			String batchSize) {
 		
 		//move sang log
@@ -251,28 +251,43 @@ public class CancelServiceDao {
 
 		if (!list.isEmpty()) {
 
-			CallableStatement cs = null;
+			//CallableStatement cs = null;
 			Connection connection = null;
 			PreparedStatement stmt = null;
 			try {
 				connection = ds.getConnection();
 				connection.setAutoCommit(false);
-				cs = connection.prepareCall(proc);
-				stmt = connection.prepareStatement(queryUpdate);
 				// move sang log và xóa trong list
 				StringBuffer listId = new StringBuffer();
-				
+				int i=0;
 				for (Map<String, String> map : list) {
+					if(i!=1 && (i-1)%500 == 0) {
+						listId.delete(listId.length() - 1, listId.length());
+						listId.append(" ) OR ID IN ( ");
+					}
 					listId.append(map.get("ID"));
 					listId.append(",");
+					i++;
 				} // end for
-				listId.delete(listId.length()-1, listId.length());
-				cs.setString(1, listId.toString());
-				cs.registerOutParameter(2, OracleTypes.INTEGER);
-				cs.execute();
+				if (listId.length() > 0) {
+					listId.delete(listId.length()-1, listId.length());
+					StringBuilder insertLogDB  = new StringBuilder(insertLog);
+					insertLogDB.append(" OR ID IN (");
+					insertLogDB.append(listId);
+					insertLogDB.append(")");
+					stmt = connection.prepareStatement(insertLogDB.toString());
+					stmt.executeUpdate();
+					stmt.clearParameters();
+					StringBuilder deleteListDB  = new StringBuilder(deleteList);
+					deleteListDB.append(" OR ID IN (");
+					deleteListDB.append(listId);
+					deleteListDB.append(")");
+					stmt = connection.prepareStatement(deleteListDB.toString());
+					stmt.executeUpdate();
+					stmt.clearParameters();
+				}
 				
-				cs.getInt(2);
-				
+				stmt = connection.prepareStatement(queryUpdate);
 				for (Map<String, String> map : list) {
 					stmt.setLong(1, Long.parseLong(map.get("SPEND_TIME")));
 					stmt.setNString(2, map.get("SESSION_ID"));

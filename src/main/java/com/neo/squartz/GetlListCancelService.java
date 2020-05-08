@@ -1,6 +1,7 @@
 package com.neo.squartz;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,6 +25,8 @@ import com.neo.utils.Utils;
 @PersistJobDataAfterExecution
 @DisallowConcurrentExecution
 public class GetlListCancelService extends QuartzJobBean{
+	
+	public static Calendar lastupdateCmd = Calendar.getInstance();
 
 	private CancelService cancelService;
 	
@@ -55,6 +58,14 @@ public class GetlListCancelService extends QuartzJobBean{
 			MoniterCancelService.flagCheckServiceCmd=true;
 			flag = false;
 			return;
+		}
+		Calendar calendar = Calendar.getInstance();
+		calendar.add(Calendar.HOUR, -5);
+		if(ModuleBo.getIsMaster()==1 && lastupdateCmd.before(calendar)) {
+			String procServiceCmd = pro.getString("sub.sql.get.cmd.service");
+			Map<String, Map<String, String>>  map = cancelService.getServiceCmds(procServiceCmd);
+			logger.info("update service_cmd in module not master");
+			updateServiceCmd(map);
 		}
 		int sizeExcuteConfig = Integer.parseInt(pro.getString("job.number.record.extend.excute"));
 		int sizeQueueUpdate = Integer.parseInt(pro.getString("job.update.queue.size.extend.retry"));
@@ -132,7 +143,8 @@ public class GetlListCancelService extends QuartzJobBean{
 			}
 		}
 		for(String string : listupdate) {
-			serviceCmd.put(string,map.get(string));
+			//serviceCmd.put(string,map.get(string));
+			logger.info("add service_cmd :{} ----->in map ",map.get(string).get("CMD"));
 		}
 		listupdate.clear();
 		Set<String> sets = serviceCmd.keySet();
@@ -142,8 +154,10 @@ public class GetlListCancelService extends QuartzJobBean{
 			}
 		}
 		for(String string : listupdate) {
-			serviceCmd.remove(string);
+			logger.info("delete service_cmd :{} ----->in map ",serviceCmd.get(string).get("CMD"));
+			//serviceCmd.remove(string);
 		}
+		serviceCmd= map;
 	}
 	
 }

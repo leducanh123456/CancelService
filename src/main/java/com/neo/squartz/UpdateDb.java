@@ -25,13 +25,15 @@ public class UpdateDb extends QuartzJobBean{
 	@Override
 	protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
 		
-		String proc = pro.getString("sub.sql.move.to.log");
+		String insertLog = pro.getString("sub.sql.insert.log");
+		
+		String deleteList = pro.getString("sub.sql.delete.list");
 		
 		String queryUpdate = pro.getString("sub.sql.update.log");
 		
 		String batchSize = pro.getString("job.batch.size.extend.retry");
 		
-		cancelService.upDateBatchRenewalRetry(proc, queryUpdate, listModulebo, batchSize);
+		cancelService.upDateBatchRenewalRetry(insertLog,deleteList, queryUpdate, listModulebo, batchSize);
 		
 	}
 
