@@ -3,7 +3,6 @@ package com.neo.scheduler;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -16,6 +15,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.neo.cancelservie.service.CancelService;
+import com.neo.common.Common;
 import com.neo.squartz.GetlListCancelService;
 import com.neo.squartz.MultilThread;
 import com.neo.utils.Utils;
@@ -65,7 +65,7 @@ public class MoniterCancelService {
 			long startTimecmd = System.nanoTime();
 			String procServiceCmd = pro.getString("sub.sql.get.cmd.service");
 			Map<String, Map<String, String>>  map = cancelService.getServiceCmds(procServiceCmd);
-			updateServiceCmd(map);
+			Common.updateServiceCmd(serviceCmd, map, logger);
 			logger.info("Time run get serive cmd : {} ", Utils.convertTimeUnit(startTimecmd));
 			flagCheckServiceCmd=true;
 			MoniterCancelService.flag = true;
@@ -103,31 +103,6 @@ public class MoniterCancelService {
 	}
 
 	public void scheduleTaskWithCronExpression() {
-	}
-	public void updateServiceCmd(Map<String, Map<String, String>>  map) {
-		List<String> listupdate = new ArrayList<String>();
-		Set<String> set = map.keySet();
-		for(String string : set) {
-			if(!serviceCmd.containsKey(string)) {
-				listupdate.add(string);
-			}
-		}
-		for(String string : listupdate) {
-			//serviceCmd.put(string,map.get(string));
-			logger.info("add service_cmd :{} ----->in map ",map.get(string).get("CMD"));
-		}
-		listupdate.clear();
-		Set<String> sets = serviceCmd.keySet();
-		for(String string : sets) {
-			if(!map.containsKey(string)) {
-				listupdate.add(string);
-			}
-		}
-		for(String string : listupdate) {
-			logger.info("delete service_cmd :{} ----->in map ",serviceCmd.get(string).get("CMD"));
-			//serviceCmd.remove(string);
-		}
-		serviceCmd = map;
 	}
 
 }

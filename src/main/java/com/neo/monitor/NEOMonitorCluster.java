@@ -87,13 +87,25 @@ public class NEOMonitorCluster {
 	private final Logger logger = LoggerFactory.getLogger(NEOMonitorCluster.class);
 
 	public void run() throws IOException {
-		try {
-			jobs = moduleService.getAllModule();
-		} catch (Exception e) {
-			logger.info("exception {}", e);
-			int exitValue = SpringApplication.exit(context);
-			System.exit(exitValue);
+		
+		boolean retryModule = true;
+
+		while (retryModule) {
+			try {
+				jobs = moduleService.getAllModule();
+				retryModule = false;
+			} catch (Exception e) {
+				logger.info("Do not connect DB ======> do not load module");
+				try {
+					Thread.sleep(10000);
+				} catch (InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+
 		}
+		
 		String serverName = pro.getString("module.name").trim();
 
 		ModuleBo server = null;

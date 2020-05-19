@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.slf4j.Logger;
 
 public class Common {
 	
@@ -58,6 +62,32 @@ public class Common {
 			}
 		}
 		return false;
+	}
+	public static void updateServiceCmd(Map<String,Map<String,String>> serviceCmds ,Map<String, Map<String, String>>  map, Logger logger) {
+		List<String> listupdate = new ArrayList<String>();
+		Set<String> set = map.keySet();
+		for(String string : set) {
+			if(!serviceCmds.containsKey(string)) {
+				listupdate.add(string);
+			}
+		}
+		for(String string : listupdate) {
+			//serviceCmds.put(string,map.get(string));
+			logger.info("add service_cmd :{} ----->in map ",map.get(string).get("CMD"));
+		}
+		listupdate.clear();
+		Set<String> sets = serviceCmds.keySet();
+		for(String string : sets) {
+			if(!map.containsKey(string)) {
+				listupdate.add(string);
+			}
+		}
+		for(String string : listupdate) {
+			logger.info("delete service_cmd :{} ----->in map ",serviceCmds.get(string).get("CMD"));
+			//serviceCmds.remove(string);
+		}
+		serviceCmds.clear();
+		serviceCmds.putAll(map);
 	}
 
 }

@@ -1,10 +1,8 @@
 package com.neo.squartz;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -18,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 
 import com.neo.cancelservie.service.CancelService;
+import com.neo.common.Common;
 import com.neo.module.bo.ModuleBo;
 import com.neo.scheduler.MoniterCancelService;
 import com.neo.utils.Utils;
@@ -53,7 +52,7 @@ public class GetlListCancelService extends QuartzJobBean{
 			long startTimecmd = System.nanoTime();
 			String procServiceCmd = pro.getString("sub.sql.get.cmd.service");
 			Map<String, Map<String, String>>  map = cancelService.getServiceCmds(procServiceCmd);
-			updateServiceCmd(map);
+			Common.updateServiceCmd(serviceCmd, map, logger);
 			logger.info("Time run get serive cmd : {} ", Utils.convertTimeUnit(startTimecmd));
 			MoniterCancelService.flagCheckServiceCmd=true;
 			flag = false;
@@ -61,11 +60,12 @@ public class GetlListCancelService extends QuartzJobBean{
 		}
 		Calendar calendar = Calendar.getInstance();
 		calendar.add(Calendar.HOUR, -5);
-		if(ModuleBo.getIsMaster()==1 && lastupdateCmd.before(calendar)) {
+		if(ModuleBo.getIsMaster()!=1 && lastupdateCmd.before(calendar)) {
 			String procServiceCmd = pro.getString("sub.sql.get.cmd.service");
 			Map<String, Map<String, String>>  map = cancelService.getServiceCmds(procServiceCmd);
 			logger.info("update service_cmd in module not master");
-			updateServiceCmd(map);
+			Common.updateServiceCmd(serviceCmd, map, logger);
+			lastupdateCmd = Calendar.getInstance();
 		}
 		int sizeExcuteConfig = Integer.parseInt(pro.getString("job.number.record.extend.excute"));
 		int sizeQueueUpdate = Integer.parseInt(pro.getString("job.update.queue.size.extend.retry"));
@@ -133,31 +133,6 @@ public class GetlListCancelService extends QuartzJobBean{
 
 	public void setServiceCmd(Map<String, Map<String, String>> serviceCmd) {
 		this.serviceCmd = serviceCmd;
-	}
-	public void updateServiceCmd(Map<String, Map<String, String>>  map) {
-		List<String> listupdate = new ArrayList<String>();
-		Set<String> set = map.keySet();
-		for(String string : set) {
-			if(!serviceCmd.containsKey(string)) {
-				listupdate.add(string);
-			}
-		}
-		for(String string : listupdate) {
-			//serviceCmd.put(string,map.get(string));
-			logger.info("add service_cmd :{} ----->in map ",map.get(string).get("CMD"));
-		}
-		listupdate.clear();
-		Set<String> sets = serviceCmd.keySet();
-		for(String string : sets) {
-			if(!map.containsKey(string)) {
-				listupdate.add(string);
-			}
-		}
-		for(String string : listupdate) {
-			logger.info("delete service_cmd :{} ----->in map ",serviceCmd.get(string).get("CMD"));
-			//serviceCmd.remove(string);
-		}
-		serviceCmd= map;
 	}
 	
 }

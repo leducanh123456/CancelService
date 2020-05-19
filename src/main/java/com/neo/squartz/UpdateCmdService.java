@@ -1,9 +1,6 @@
 package com.neo.squartz;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.quartz.DisallowConcurrentExecution;
@@ -15,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 
 import com.neo.cancelservie.service.CancelService;
+import com.neo.common.Common;
 import com.neo.utils.Utils;
 
 @PersistJobDataAfterExecution
@@ -27,44 +25,18 @@ public class UpdateCmdService extends QuartzJobBean {
 
 	private PropertiesConfiguration pro;
 
-	private final Logger loggerRun = LoggerFactory.getLogger(UpdateCmdService.class);
+	private final Logger logger = LoggerFactory.getLogger(UpdateCmdService.class);
 
 	@Override
 	protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
 		// TODO Auto-generated method stub
-		loggerRun.info("Get service_cmd");
+		logger.info("Get service_cmd");
 		long startTimecmd = System.nanoTime();
 		String procServiceCmd = pro.getString("sub.sql.get.cmd.service");
 		Map<String, Map<String, String>> map = cancelService.getServiceCmds(procServiceCmd);
-		loggerRun.info("Time run get serive cmd : {} ", Utils.convertTimeUnit(startTimecmd));
-		updateServiceCmd(map);
+		logger.info("Time run get serive cmd : {} ", Utils.convertTimeUnit(startTimecmd));
+		Common.updateServiceCmd(serviceCmds, map, logger);
 
-	}
-
-	public void updateServiceCmd(Map<String, Map<String, String>> map) {
-		List<String> listupdate = new ArrayList<String>();
-		Set<String> set = map.keySet();
-		for(String string : set) {
-			if(!serviceCmds.containsKey(string)) {
-				listupdate.add(string);
-			}
-		}
-		for(String string : listupdate) {
-			//serviceCmds.put(string,map.get(string));
-			loggerRun.info("add service_cmd :{} ----->in map ",map.get(string).get("CMD"));
-		}
-		listupdate.clear();
-		Set<String> sets = serviceCmds.keySet();
-		for(String string : sets) {
-			if(!map.containsKey(string)) {
-				listupdate.add(string);
-			}
-		}
-		for(String string : listupdate) {
-			loggerRun.info("delete service_cmd :{} ----->in map ",serviceCmds.get(string).get("CMD"));
-			//serviceCmds.remove(string);
-		}
-		serviceCmds = map;
 	}
 
 	public CancelService getCancelService() {
@@ -89,10 +61,6 @@ public class UpdateCmdService extends QuartzJobBean {
 
 	public void setPro(PropertiesConfiguration pro) {
 		this.pro = pro;
-	}
-
-	public Logger getLoggerRun() {
-		return loggerRun;
 	}
 
 }
