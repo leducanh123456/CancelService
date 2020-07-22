@@ -1,5 +1,6 @@
 package com.neo.squartz;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -7,9 +8,14 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.neo.cohgw.bs.VASRequest;
-import com.neo.cohgw.bs.VASResponse;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.neo.cohgw.bs.HttpClient;
+import com.neo.cohgw.bs.NEORequest;
+import com.neo.cohgw.bs.NEOResponse;
 import com.neo.common.StringRandom;
+import com.neo.utils.ExtractException;
 
 public class MultilThread implements Runnable {
 
@@ -17,9 +23,9 @@ public class MultilThread implements Runnable {
 
 	private Object tmp;
 
-	private VASRequest vASRequest;
+	private NEOResponse neoResponse;
 
-	private VASResponse vASResponse;
+	private NEORequest neoRequest;
 
 	private LinkedBlockingQueue<Map<String, String>> queueRenewalRetry;
 
@@ -52,6 +58,7 @@ public class MultilThread implements Runnable {
 		
 		
 		try {
+			ObjectMapper objectMapper = new ObjectMapper();
 			Long startTime = System.currentTimeMillis();
 			
 			@SuppressWarnings("unchecked")
@@ -81,13 +88,25 @@ public class MultilThread implements Runnable {
 				callApi.put("SESSION", uniqueID);
 				callApi.put("CLEAN_SUB", "1");
 				
-				vASRequest = new VASRequest(callApi);
+				neoRequest = new NEORequest();
+				neoRequest.addMapParameter(callApi);
 				
-				String result = vASRequest.send(propertiesConfiguration.getString("extend.api"));
+				String paramUrl=null;
+				try {
+					paramUrl = objectMapper.writeValueAsString(neoRequest);
+				} catch (JsonProcessingException e) {
+					logger.error("excption {} MutilThreadMt", ExtractException.exceptionToString(e));
+				}
+				String result =null;
+				try {
+					result = HttpClient.sendJson(paramUrl,propertiesConfiguration.getString("extend.api"));
+				} catch (IOException e) {
+					logger.error("excption {} MutilThreadMt", ExtractException.exceptionToString(e));
+				}
 				
-				vASResponse = new VASResponse(result);
-				String status = vASResponse.getStatus();
-				String statusMessage =vASResponse.getStatusMessage();
+				neoResponse = objectMapper.readValue(result, NEOResponse.class);
+				String status = neoResponse.getStatus();
+				String statusMessage =neoResponse.getStatusMessage();
 				
 				if (status!=null) {
 					parameter.replace("STATE", status);
@@ -96,14 +115,15 @@ public class MultilThread implements Runnable {
 				}
 				parameter.put("SERVICE_CMD", map.get("CMD"));
 				parameter.put("SESSION_ID", uniqueID);
-				logger.info(" session : {} :request : {}",uniqueID, vASRequest.getRequest());
+				logger.info(" session : {} :request : {}",uniqueID, neoRequest.toString());
 				logger.info(" session : {} :response : {}",uniqueID, result);
 				parameter.put("STATUS", status);
 				parameter.put("STATUS_MESSAGE", statusMessage);
 			} else {
-				vASRequest = new VASRequest(callApi);
+				neoRequest = new NEORequest();
+				neoRequest.addMapParameter(callApi);
 				parameter.put("STATUS", "");
-				logger.info(" session : {} :request : {}",uniqueID, vASRequest.getRequest());
+				logger.info(" session : {} :request : {}",uniqueID, neoRequest.toString());
 				parameter.replace("STATE", "-1");
 				parameter.put("SERVICE_CMD", "");
 			}
