@@ -16,7 +16,8 @@ import com.neo.utils.ExtractException;
 @EnableScheduling
 public class App {
 	private static final Logger logger = LoggerFactory.getLogger(App.class);
-
+	public static volatile boolean IS_IGNORE = false;
+	public static volatile boolean IS_SHUTDOWN = false;
 	public static void main(String[] args) {
 		try {
 			ApplicationContext context = SpringApplication.run(App.class, args);

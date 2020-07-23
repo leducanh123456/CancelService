@@ -1,4 +1,3 @@
-com\neo\cohgw\bs\VASResponse.class
 com\neo\scheduler\MoniterCancelService.class
 com\neo\cancelservie\service\CancelService.class
 com\neo\config\ReportExcutor.class
@@ -14,7 +13,10 @@ com\neo\config\ResourceManagement.class
 com\neo\module\service\ModuleService.class
 com\neo\squartz\UpdateDb.class
 com\neo\squartz\FilterCancelService.class
+com\neo\cohgw\bs\GracefulShutdown.class
+com\neo\cohgw\bs\NEOParamPool.class
 com\neo\config\ConfigResourc.class
+com\neo\cohgw\bs\NEOResponse.class
 com\neo\common\StringRandom.class
 com\neo\squartz\Managerment.class
 com\neo\common\Common.class
@@ -22,10 +24,12 @@ com\neo\App.class
 com\neo\utils\ExtractException.class
 com\neo\monitor\NEOMonitorCluster$1.class
 com\neo\utils\Utils.class
-com\neo\cohgw\bs\VASRequest.class
 com\neo\cancelservice\dao\CancelServiceDao.class
+com\neo\cohgw\bs\VASNamespace.class
 com\neo\config\ResourceManagement$1.class
 com\neo\module\dao\ModuleDao.class
 com\neo\monitor\SocketReadChannel.class
+com\neo\cohgw\bs\NEORequest.class
 com\neo\config\ConfigSquartz.class
 com\neo\squartz\UpdateCmdService.class
+com\neo\cohgw\bs\HttpClient.class

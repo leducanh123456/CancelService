@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 
+import com.neo.App;
 import com.neo.cancelservie.service.CancelService;
 import com.neo.common.Common;
 import com.neo.module.bo.ModuleBo;
@@ -71,11 +72,13 @@ public class GetlListCancelService extends QuartzJobBean{
 		int sizeQueueUpdate = Integer.parseInt(pro.getString("job.update.queue.size.extend.retry"));
 		if(MoniterCancelService.flag&&executor.getQueue().size()<=sizeExcuteConfig
 				&&( sizeQueueUpdate-2*sizeExcuteConfig>(listModulebo.size()))) {
+			if(App.IS_IGNORE) {
+				return;
+			}
 			String proc = pro.getString("sub.sql.getlist.cancel.service");
 			String module = pro.getString("module.name");
 			String numberRecord = pro.getString("job.number.record.extend.excute");
 			List<Map<String, String>> list = cancelService.getListCancelService(proc, module, Integer.parseInt(numberRecord));
-			
 			if(!list.isEmpty()) {
 				  for(Map<String, String> element : list) { 
 					  Runnable worker = new MultilThread(element,listModulebo,pro,serviceCmd); 

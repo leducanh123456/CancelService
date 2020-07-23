@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import com.neo.App;
 import com.neo.cancelservie.service.CancelService;
 import com.neo.common.Common;
 import com.neo.squartz.GetlListCancelService;
@@ -81,6 +82,9 @@ public class MoniterCancelService {
 			logger.info("run monitor cancel service ");
 			if(GetlListCancelService.flag&&executor.getQueue().size()<=sizeExcuteConfig
 					&&( sizeQueueUpdate-2*sizeExcuteConfig>(listModulebo.size()))) {
+				if(App.IS_IGNORE) {
+					return;
+				}
 				String proc = pro.getString("sub.sql.getlist.cancel.service");
 				String module = pro.getString("module.name");
 				String numberRecord = pro.getString("job.number.record.extend.excute");

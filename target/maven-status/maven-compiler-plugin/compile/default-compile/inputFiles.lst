@@ -1,6 +1,6 @@
-F:\java\neo\vas\CancelService\src\main\java\com\neo\cohgw\bs\VASResponse.java
+F:\java\neo\vas\CancelService\src\main\java\com\neo\cohgw\bs\GracefulShutdown.java
 F:\java\neo\vas\CancelService\src\main\java\com\neo\utils\ExtractException.java
-F:\java\neo\vas\CancelService\src\main\java\com\neo\cohgw\bs\VASRequest.java
+F:\java\neo\vas\CancelService\src\main\java\com\neo\cohgw\bs\NEOParamPool.java
 F:\java\neo\vas\CancelService\src\main\java\com\neo\config\ReportExcutor.java
 F:\java\neo\vas\CancelService\src\main\java\com\neo\config\PropertyConfig.java
 F:\java\neo\vas\CancelService\src\main\java\com\neo\cancelservice\dao\CancelServiceDao.java
@@ -16,8 +16,12 @@ F:\java\neo\vas\CancelService\src\main\java\com\neo\common\StringRandom.java
 F:\java\neo\vas\CancelService\src\main\java\com\neo\scheduler\MoniterCancelService.java
 F:\java\neo\vas\CancelService\src\main\java\com\neo\cancelservie\service\CancelService.java
 F:\java\neo\vas\CancelService\src\main\java\com\neo\squartz\GetlListCancelService.java
+F:\java\neo\vas\CancelService\src\main\java\com\neo\cohgw\bs\NEORequest.java
+F:\java\neo\vas\CancelService\src\main\java\com\neo\cohgw\bs\VASNamespace.java
+F:\java\neo\vas\CancelService\src\main\java\com\neo\cohgw\bs\NEOResponse.java
 F:\java\neo\vas\CancelService\src\main\java\com\neo\squartz\UpdateCmdService.java
 F:\java\neo\vas\CancelService\src\main\java\com\neo\config\ResourceManagement.java
+F:\java\neo\vas\CancelService\src\main\java\com\neo\cohgw\bs\HttpClient.java
 F:\java\neo\vas\CancelService\src\main\java\com\neo\module\service\ModuleService.java
 F:\java\neo\vas\CancelService\src\main\java\com\neo\scheduler\CleanMem.java
 F:\java\neo\vas\CancelService\src\main\java\com\neo\config\ConfigSquartz.java
